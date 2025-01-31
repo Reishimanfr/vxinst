@@ -34,8 +34,11 @@ var (
 		Transport: transport,
 	}
 
-	port = flag.String("port", "8080", "Port to run the server on")
-	dev  = flag.Bool("dev", false, "Enable debugging")
+	port     = flag.String("port", "8080", "Port to run the server on")
+	dev      = flag.Bool("dev", false, "Enable debugging")
+	secure   = flag.Bool("secure", false, "Use a secure connection")
+	certFile = flag.String("cert-file", "", "Path to the SSL certificate (only needed with secure enabled)")
+	keyFile  = flag.String("key-file", "", "Path to the SSL key (only needed with secure enabled)")
 )
 
 // Used for finding the video url
@@ -50,6 +53,10 @@ func main() {
 
 	if _, err := strconv.Atoi(*port); err != nil {
 		panic("port is not a valid integer")
+	}
+
+	if *secure && (*certFile == "" || *keyFile == "") {
+		panic("No certificate file or key file provided")
 	}
 
 	slog.SetDefault(slog.New(
@@ -74,7 +81,12 @@ func main() {
 	r.GET("/reel/:id", serveReel)
 	r.GET("/reels/:id", serveReel)
 	r.GET("/p/:id", serveReel)
-	r.Run(":" + *port)
+
+	if *secure {
+		r.RunTLS(":"+*port, *certFile, *keyFile)
+	} else {
+		r.Run(":" + *port)
+	}
 }
 
 func serveReel(c *gin.Context) {
