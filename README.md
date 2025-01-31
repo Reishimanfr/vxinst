@@ -10,7 +10,7 @@ https://vxinstagram.com/
 
 ## How to self-host
 > [!WARNING]
-> This assumes you have git and golang working correctly and are on linux
+> This assumes you have git and golang working correctly
 ```sh
 git clone https://github.com/Reishimanfr/vxinstagram
 cd vxinstagram
