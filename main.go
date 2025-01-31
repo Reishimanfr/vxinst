@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"flag"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -32,6 +33,9 @@ var (
 	httpClient = &http.Client{
 		Transport: transport,
 	}
+
+	port = flag.String("port", "8080", "Port to run the server on")
+	dev  = flag.Bool("dev", false, "Enable debugging")
 )
 
 // Used for finding the video url
@@ -42,6 +46,12 @@ const (
 )
 
 func main() {
+	flag.Parse()
+
+	if _, err := strconv.Atoi(*port); err != nil {
+		panic("port is not a valid integer")
+	}
+
 	slog.SetDefault(slog.New(
 		tint.NewHandler(os.Stderr, &tint.Options{
 			Level:      slog.LevelInfo,
@@ -54,12 +64,17 @@ func main() {
 	r.Use(gin.Recovery())
 	r.Use(gin.ErrorLogger())
 	r.Use(RateLimiterMiddleware(NewRateLimiter(5, 10)))
-	gin.SetMode(gin.ReleaseMode)
+
+	if *dev {
+		r.Use(gin.Logger())
+	} else {
+		gin.SetMode(gin.ReleaseMode)
+	}
 
 	r.GET("/reel/:id", serveReel)
 	r.GET("/reels/:id", serveReel)
 	r.GET("/p/:id", serveReel)
-	r.Run()
+	r.Run(":" + *port)
 }
 
 func serveReel(c *gin.Context) {
