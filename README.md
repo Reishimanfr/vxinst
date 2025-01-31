@@ -15,6 +15,15 @@ https://vxinstagram.com/
 git clone https://github.com/Reishimanfr/vxinstagram
 cd vxinstagram
 go build -ldflags "-s -w" -tags=jsoniter .
-./vxinstagram --port=1234
 ```
-Due to the nature of routers I can't help you with setting the rest up since every routed is different. Google is your best friend here
+### With SSL
+> [!TIP]
+> You can get a free SSL certificate from [Let's Encrypt](https://letsencrypt.org/) using [certbot](https://certbot.eff.org/)
+```sh
+./vxinstagram --port="8080" --cert-file="path/to/your/certificate" --key-file="path/to/your/key"
+```
+
+### Without SSL
+```sh
+./vxinstagram --port="8080"
+```
