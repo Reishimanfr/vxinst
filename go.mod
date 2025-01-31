@@ -1,4 +1,4 @@
-module bash06/insta-embed
+module bash06/vxinstagram
 
 go 1.23.4
 
