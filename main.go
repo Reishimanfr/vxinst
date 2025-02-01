@@ -15,6 +15,8 @@ import (
 	"unicode/utf16"
 	"unsafe"
 
+	cache "github.com/chenyahui/gin-cache"
+	"github.com/chenyahui/gin-cache/persist"
 	"github.com/gin-gonic/gin"
 	"github.com/lmittmann/tint"
 )
@@ -33,6 +35,8 @@ var (
 	httpClient = &http.Client{
 		Transport: transport,
 	}
+
+	store = persist.NewMemoryStore(time.Minute * 1)
 
 	port     = flag.String("port", "8080", "Port to run the server on")
 	dev      = flag.Bool("dev", false, "Enable debugging")
@@ -78,9 +82,9 @@ func main() {
 		gin.SetMode(gin.ReleaseMode)
 	}
 
-	r.GET("/reel/:id", serveReel)
-	r.GET("/reels/:id", serveReel)
-	r.GET("/p/:id", serveReel)
+	r.GET("/reel/:id", cache.CacheByRequestURI(store, time.Minute*1), serveReel)
+	r.GET("/reels/:id", cache.CacheByRequestURI(store, time.Minute*1), serveReel)
+	r.GET("/p/:id", cache.CacheByRequestURI(store, time.Minute*1), serveReel)
 
 	if *secure {
 		r.RunTLS(":"+*port, *certFile, *keyFile)
@@ -105,7 +109,7 @@ func serveReel(c *gin.Context) {
 		return
 	}
 
-	videoUrl, err := GetCdnUrl(req)
+	videoUrl, err := GetCdnUrl(postId)
 	if err != nil {
 		c.AbortWithStatus(http.StatusInternalServerError)
 		slog.Error("Failed to get video URL from cdn", slog.Any("err", err))
@@ -140,11 +144,14 @@ func serveReel(c *gin.Context) {
 }
 
 // Attempts to get the URL to the reel directly from the CDN
-func GetCdnUrl(req *http.Request) (string, error) {
+func GetCdnUrl(postId string) (string, error) {
 	// Set the user agent to firefox on pc so we get the correct stuff
-	req.Header.Set("User-Agent", "Mozilla/5.0 (platform; rv:gecko-version) Gecko/gecko-trail Firefox/firefox-version")
+	// req.Header.Set("User-Agent", "Mozilla/5.0 (platform; rv:gecko-version) Gecko/gecko-trail Firefox/firefox-version")
+	now := time.Now()
 
-	res, err := client.Do(req)
+	res, err := http.Get("https://instagram.com/p/" + postId + "/embed/captioned")
+
+	// res, err := client.Do(req)
 	if err != nil {
 		return "", fmt.Errorf("HTTP request failed: %v", err)
 	}
@@ -152,11 +159,12 @@ func GetCdnUrl(req *http.Request) (string, error) {
 	defer res.Body.Close()
 
 	scanner := bufio.NewScanner(res.Body)
-	scanner.Buffer(make([]byte, 64*1024), 1024*1024)
+	scanner.Buffer(make([]byte, 16*1024), 1024*1024)
 
 	for scanner.Scan() {
 		line := scanner.Text()
 		if url, found := ExtractUrl(line); found {
+			fmt.Println("Request: ", time.Since(now))
 			return url, nil
 		}
 	}
