@@ -138,10 +138,10 @@ func serveReel(c *gin.Context) {
 		return
 	}
 
-	// if !strings.Contains(strings.ToLower(c.Request.Header.Get("User-Agent")), "discord") {
-	// 	c.Redirect(http.StatusPermanentRedirect, "https://instagram.com/reel/"+postId)
-	// 	return
-	// }
+	if !strings.Contains(strings.ToLower(c.Request.Header.Get("User-Agent")), "discord") {
+		c.Redirect(http.StatusPermanentRedirect, "https://instagram.com/reel/"+postId)
+		return
+	}
 
 	videoUrl, err := GetCdnUrl(postId)
 	if err != nil {
