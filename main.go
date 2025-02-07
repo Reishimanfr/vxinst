@@ -103,7 +103,10 @@ func main() {
 
 	r.GET("/reel/:id", cache.CacheByRequestURI(store, time.Minute*1), serveReel)
 	r.GET("/reels/:id", cache.CacheByRequestURI(store, time.Minute*1), serveReel)
-	r.GET("/p/:id", cache.CacheByRequestURI(store, time.Minute*1), serveReel)
+	r.GET("/p/:id", serveReel)
+
+	// Mobile posts use a different URL and then redirect to the post
+	r.GET("/share/:id", cache.CacheByRequestURI(store, time.Minute*1), serveReel)
 
 	if *secure {
 		slog.Info("Server running with TLS enabled", slog.String("listen", *port))
@@ -117,15 +120,28 @@ func main() {
 func serveReel(c *gin.Context) {
 	postId := c.Param("id")
 
+	if c.Request.URL.Path[:6] == "/share" {
+		req, err := http.Get("https://instagram.com" + c.Request.URL.String())
+		if err != nil {
+			slog.Error("Failed to follow redirect", slog.Any("err", err))
+			return
+		}
+
+		split := strings.Split(req.Request.URL.String(), "/")
+		postId = split[len(split)-2]
+
+		fmt.Println(split)
+	}
+
 	if postId == "" {
 		c.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
 
-	if !strings.Contains(strings.ToLower(c.Request.Header.Get("User-Agent")), "discord") {
-		c.Redirect(http.StatusPermanentRedirect, "https://instagram.com/reel/"+postId)
-		return
-	}
+	// if !strings.Contains(strings.ToLower(c.Request.Header.Get("User-Agent")), "discord") {
+	// 	c.Redirect(http.StatusPermanentRedirect, "https://instagram.com/reel/"+postId)
+	// 	return
+	// }
 
 	videoUrl, err := GetCdnUrl(postId)
 	if err != nil {
@@ -166,6 +182,10 @@ func serveReel(c *gin.Context) {
 	proxy.ServeHTTP(c.Writer, c.Request)
 
 	slog.Debug("Everything is OK. Request finished without any errors")
+}
+
+func findReelId(c *gin.Context) {
+
 }
 
 // Attempts to get the URL to the reel directly from the CDN
