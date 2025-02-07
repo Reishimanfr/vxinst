@@ -26,7 +26,6 @@ go build -ldflags "-s -w" -tags=jsoniter .
 ```sh
 ./vxinstagram --port="8080" --cert-file="path/to/your/certificate" --key-file="path/to/your/key"
 ```
-
 ## Without SSL
 ```sh
 ./vxinstagram --port="8080"
@@ -41,3 +40,11 @@ go build -ldflags "-s -w" -tags=jsoniter .
 | `-secure` | Enable https instead of http | false |
 | `-cert-file` | Path to your SSL certificate file (if `-secure` is `true`) | - |
 | `-key-file` | Path to your SSL key file (if `-secure` is `true`) | - |
+
+# Task list
+- [ ] Find a way to fix some reels not embedding
+- [ ] Add Open Graph embeds to videos
+- [ ] Add additional info (like the amount of likes) to the Open Graph embed
+- [ ] Add monitoring dashboard capabilities
+- [ ] Create deployment scripts (for docker and some services)
+- [ ] Create an action to automatically compile the binary and release it
