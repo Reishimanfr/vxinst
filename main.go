@@ -103,7 +103,7 @@ func main() {
 
 	r.GET("/reel/:id", cache.CacheByRequestURI(store, time.Minute*1), serveReel)
 	r.GET("/reels/:id", cache.CacheByRequestURI(store, time.Minute*1), serveReel)
-	r.GET("/p/:id", serveReel)
+	r.GET("/p/:id", cache.CacheByRequestURI(store, time.Minute*1), serveReel)
 
 	// Mobile posts use a different URL and then redirect to the post
 	r.GET("/share/:id", cache.CacheByRequestURI(store, time.Minute*1), serveReel)
