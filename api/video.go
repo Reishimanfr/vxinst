@@ -40,21 +40,21 @@ func ServeVideo(c *gin.Context) {
 	if err != nil {
 		slog.Error("Failed to get video URL from instagram's CDN", slog.Any("err", err))
 		sentry.CaptureException(err)
-		c.HTML(http.StatusInternalServerError, "server_error.html", nil)
+		c.HTML(http.StatusOK, "server_error.html", nil)
 		return
 	}
 
 	if videoUrl == "" {
 		slog.Warn("Instagram returned an empty video URL. This most likely means the video is age restricted")
 		sentry.CaptureMessage("Instagram returned an empty video URL. This most likely means the video is age restricted")
-		c.HTML(http.StatusNoContent, "no_url.html", nil)
+		c.HTML(http.StatusOK, "no_url.html", nil)
 		return
 	}
 
 	remote, err := url.Parse(videoUrl)
 	if err != nil {
 		slog.Error("Failed to parse CDN video URL", slog.Any("err", err))
-		c.HTML(http.StatusInternalServerError, "server_error.html", nil)
+		c.HTML(http.StatusOK, "server_error.html", nil)
 		return
 	}
 

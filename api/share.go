@@ -36,7 +36,7 @@ func FollowShare(c *gin.Context) {
 	if err != nil {
 		slog.Error("Failed to prepare request to follow redirects", slog.Any("err", err))
 		sentry.CaptureException(err)
-		c.HTML(http.StatusInternalServerError, "server_error.html", nil)
+		c.HTML(http.StatusOK, "server_error.html", nil)
 		return
 	}
 
@@ -44,7 +44,7 @@ func FollowShare(c *gin.Context) {
 	if err != nil {
 		slog.Error("Failed to follow redirects", slog.Any("err", err))
 		sentry.CaptureException(err)
-		c.HTML(http.StatusInternalServerError, "server_error.html", nil)
+		c.HTML(http.StatusOK, "server_error.html", nil)
 		return
 	}
 	res.Body.Close()
@@ -65,7 +65,7 @@ func FollowShare(c *gin.Context) {
 	if err != nil {
 		slog.Error("Failed to get video URL from instagram's CDN", slog.Any("err", err))
 		sentry.CaptureException(err)
-		c.HTML(http.StatusInternalServerError, "server_error.html", nil)
+		c.HTML(http.StatusOK, "server_error.html", nil)
 		return
 	}
 
@@ -80,7 +80,7 @@ func FollowShare(c *gin.Context) {
 	if err != nil {
 		slog.Error("Failed to parse CDN video URL", slog.Any("err", err))
 		sentry.CaptureException(err)
-		c.HTML(http.StatusInternalServerError, "server_error.html", nil)
+		c.HTML(http.StatusOK, "server_error.html", nil)
 		return
 	}
 
