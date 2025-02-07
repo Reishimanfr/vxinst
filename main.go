@@ -41,6 +41,7 @@ var (
 	port     = flag.String("port", "8080", "Port to run the server on")
 	dev      = flag.Bool("dev", false, "Enable debugging")
 	secure   = flag.Bool("secure", false, "Use a secure connection")
+	logLevel = flag.String("log-level", "info", "Logging verbositily level [error, info, warn, debug]")
 	certFile = flag.String("cert-file", "", "Path to the SSL certificate (only needed with secure enabled)")
 	keyFile  = flag.String("key-file", "", "Path to the SSL key (only needed with secure enabled)")
 )
@@ -63,9 +64,25 @@ func main() {
 		panic("No certificate file or key file provided")
 	}
 
+	var level slog.Level
+
+	switch *logLevel {
+	case "error":
+		level = slog.LevelError
+	case "info":
+		level = slog.LevelInfo
+	case "warn":
+		level = slog.LevelWarn
+	case "debug":
+		level = slog.LevelDebug
+
+	default:
+		panic("Invalid logging level provided. Must be one of [error, info, warn, debug]")
+	}
+
 	slog.SetDefault(slog.New(
 		tint.NewHandler(os.Stderr, &tint.Options{
-			Level:      slog.LevelInfo,
+			Level:      level,
 			TimeFormat: time.Kitchen,
 		}),
 	))
@@ -75,6 +92,8 @@ func main() {
 	r.Use(gin.Recovery())
 	r.Use(gin.ErrorLogger())
 	r.Use(RateLimiterMiddleware(NewRateLimiter(5, 10)))
+
+	r.LoadHTMLGlob("templates/*")
 
 	if *dev {
 		r.Use(gin.Logger())
@@ -87,8 +106,10 @@ func main() {
 	r.GET("/p/:id", cache.CacheByRequestURI(store, time.Minute*1), serveReel)
 
 	if *secure {
+		slog.Info("Server running with TLS enabled", slog.String("listen", *port))
 		r.RunTLS(":"+*port, *certFile, *keyFile)
 	} else {
+		slog.Info("Server running", slog.String("listen", *port))
 		r.Run(":" + *port)
 	}
 }
@@ -101,11 +122,8 @@ func serveReel(c *gin.Context) {
 		return
 	}
 
-	origin := "https://instagram.com/p/" + postId + "/embed/captioned"
-
-	req, err := http.NewRequest("GET", origin, nil)
-	if err != nil {
-		slog.Error("Failed to prepare HTTP request", slog.Any("err", err))
+	if !strings.Contains(strings.ToLower(c.Request.Header.Get("User-Agent")), "discord") {
+		c.Redirect(http.StatusPermanentRedirect, "https://instagram.com/reel/"+postId)
 		return
 	}
 
@@ -116,42 +134,54 @@ func serveReel(c *gin.Context) {
 		return
 	}
 
-	parsedUrl, err := url.Parse(videoUrl)
+	if videoUrl == "" {
+		slog.Warn("Instagram returned an empty video URL. This most likely means the video is age restricted")
+		c.HTML(http.StatusOK, "no_url.html", nil)
+		return
+	}
+
+	remote, err := url.Parse(videoUrl)
 	if err != nil {
 		slog.Error("Failed to parse video url", slog.Any("err", err))
 		return
 	}
 
-	proxy := &httputil.ReverseProxy{
-		Director: func(r *http.Request) {
-			r.URL = parsedUrl
-			r.Host = parsedUrl.Host
-			r.Header = c.Request.Header.Clone()
+	proxy := httputil.NewSingleHostReverseProxy(remote)
+	proxy.Director = func(r *http.Request) {
+		r.Header = c.Request.Header
+		r.Host = remote.Host
+		r.URL = remote
+		r.Header = c.Request.Header.Clone()
 
-			hopHeaders := []string{
-				"Connection", "Keep-Alive", "Proxy-Authenticate", "Proxy-Authorization", "Te", "Trailer", "Transfer-Encoding",
-			}
+		hopHeaders := []string{
+			"Connection", "Keep-Alive", "Proxy-Authenticate", "Proxy-Authorization", "Te", "Trailer", "Transfer-Encoding",
+		}
 
-			for _, h := range hopHeaders {
-				req.Header.Del(h)
-			}
-		},
-		Transport: transport,
+		for _, h := range hopHeaders {
+			r.Header.Del(h)
+		}
 	}
 
 	c.Header("Cache-Control", "max-age=43200")
 	proxy.ServeHTTP(c.Writer, c.Request)
+
+	slog.Debug("Everything is OK. Request finished without any errors")
 }
 
 // Attempts to get the URL to the reel directly from the CDN
 func GetCdnUrl(postId string) (string, error) {
+	origin := "https://instagram.com/p/" + postId + "/embed/captioned"
+
+	slog.Debug("Preparing request", slog.String("origin", origin))
+	req, err := http.NewRequest("GET", origin, nil)
+	if err != nil {
+		return "", fmt.Errorf("failed to prepare HTTP request: %v", err)
+	}
+
 	// Set the user agent to firefox on pc so we get the correct stuff
-	// req.Header.Set("User-Agent", "Mozilla/5.0 (platform; rv:gecko-version) Gecko/gecko-trail Firefox/firefox-version")
-	now := time.Now()
+	req.Header.Set("User-Agent", "Mozilla/5.0 (platform; rv:gecko-version) Gecko/gecko-trail Firefox/firefox-version")
 
-	res, err := http.Get("https://instagram.com/p/" + postId + "/embed/captioned")
-
-	// res, err := client.Do(req)
+	res, err := client.Do(req)
 	if err != nil {
 		return "", fmt.Errorf("HTTP request failed: %v", err)
 	}
@@ -161,10 +191,10 @@ func GetCdnUrl(postId string) (string, error) {
 	scanner := bufio.NewScanner(res.Body)
 	scanner.Buffer(make([]byte, 16*1024), 1024*1024)
 
+	slog.Debug("Scanning response body for video url")
 	for scanner.Scan() {
 		line := scanner.Text()
-		if url, found := ExtractUrl(line); found {
-			fmt.Println("Request: ", time.Since(now))
+		if url, found := ExtractUrl(line); found && url != "" {
 			return url, nil
 		}
 	}
