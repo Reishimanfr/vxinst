@@ -48,3 +48,4 @@ go build -ldflags "-s -w" -tags=jsoniter .
 - [ ] Add monitoring dashboard capabilities
 - [ ] Create deployment scripts (for docker and some services)
 - [ ] Create an action to automatically compile the binary and release it
+- [ ] Fix reels with usernames at the beginning not working (/:username/reel/:postId)
