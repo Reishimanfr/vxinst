@@ -1,24 +1,42 @@
 package flags
 
 import (
-	"flag"
 	"fmt"
+	"os"
 	"slices"
 	"strconv"
+
+	"github.com/spf13/pflag"
 )
 
 var (
-	Port      = flag.String("port", "8080", "Port to run the server on")
-	GinLogs   = flag.Bool("gin-logs", false, "Enable gin debug logs")
-	Secure    = flag.Bool("secure", false, "Use a secure connection")
-	LogLevel  = flag.String("log-level", "info", "Logging verbositily level [debug, error, warn, info]")
-	CertFile  = flag.String("cert-file", "", "Path to the SSL certificate (only needed with secure enabled)")
-	KeyFile   = flag.String("key-file", "", "Path to the SSL key (only needed with secure enabled)")
-	SentryDsn = flag.String("sentry-dsn", "", "Sentry DSN used for telementry")
+	Port      = pflag.StringP("port", "p", getEnvDefault("PORT", "8080"), "Port to run the server on")
+	GinLogs   = pflag.BoolP("gin-logs", "g", getEnvDefaultBool("GIN_LOGS", false), "Enable gin debug logs")
+	Secure    = pflag.BoolP("secure", "s", getEnvDefaultBool("SECURE", false), "Use a secure connection")
+	LogLevel  = pflag.StringP("log-level", "l", getEnvDefault("LOG_LEVEL", "info"), "Logging verbositily level [debug, error, warn, info]")
+	CertFile  = pflag.StringP("cert-file", "c", getEnvDefault("CERT_FILE", ""), "Path to the SSL certificate (only needed with secure enabled)")
+	KeyFile   = pflag.StringP("key-file", "k", getEnvDefault("KEY_FILE", ""), "Path to the SSL key (only needed with secure enabled)")
+	SentryDsn = pflag.StringP("sentry-dsn", "d", getEnvDefault("SENTRY_DSN", ""), "Sentry DSN used for telemetry")
 )
 
+func getEnvDefault(key, defaultValue string) string {
+	if value, exists := os.LookupEnv(key); exists {
+		return value
+	}
+	return defaultValue
+}
+
+func getEnvDefaultBool(key string, defaultValue bool) bool {
+	if value, exists := os.LookupEnv(key); exists {
+		if b, err := strconv.ParseBool(value); err == nil {
+			return b
+		}
+	}
+	return defaultValue
+}
+
 func Parse() error {
-	flag.Parse()
+	pflag.Parse()
 
 	if _, err := strconv.Atoi(*Port); err != nil {
 		return fmt.Errorf("port is not a valid integer")
