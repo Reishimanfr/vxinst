@@ -4,7 +4,7 @@ Simply add `vx` to instagram URLs like so:
 https://vxinstagram.com/....
 ```
 This will attempt to embed the instagram video like so:<br>
-![image](https://github.com/user-attachments/assets/b124bb26-0815-4b34-b8f5-70da24dcec20)
+![image](https://github.com/user-attachments/assets/b124bb26-0815-4b34-b8f5-70da24dcec20)<br>
 Clicking the VxInstagram URL will redirect you to the original post
 
 # How to self-host
