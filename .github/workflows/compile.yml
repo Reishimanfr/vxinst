@@ -28,11 +28,14 @@ jobs:
       - name: Build Binary for amd64
         run: GOOS=linux GOARCH=amd64 go build -ldflags "-s -w" -tags=jsoniter -o vxinstagram-amd64 .
 
-      - name: Build Binary for arm
+      - name: Build Binary for arm64
         run: GOOS=linux GOARCH=arm64 go build -ldflags "-s -w" -tags=jsoniter -o vxinstagram-arm64 .
 
-      - name: Build Binary for Windows (ew)
+      - name: Build Binary for Windows
         run: GOOS=windows GOARCH=amd64 go build -ldflags "-s -w" -tags=jsoniter -o vxinstagram-windows-amd64.exe
+
+      - name: List built binaries for debug
+        run: ls -lah
 
       - name: Upload Binary Artifact for amd64
         uses: actions/upload-artifact@v4
@@ -46,10 +49,10 @@ jobs:
           name: vxinstagram-arm64
           path: vxinstagram-arm64
 
-      - name: Upload Binary Artifact for windows (ew)
+      - name: Upload Binary Artifact for Windows
         uses: actions/upload-artifact@v4
         with:
-          name: vxinstagram-windows-amd64.exe
+          name: vxinstagram-windows-amd64
           path: vxinstagram-windows-amd64.exe
 
   release:
