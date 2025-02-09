@@ -42,18 +42,17 @@ var (
 // This means we have to first follow the redirects before we can actually embed
 // the post itself which is extremely annoying and slow
 func FollowShare(c *gin.Context) {
-	span := sentry.StartSpan(c.Request.Context(), "serve.video")
+	span := sentry.StartSpan(c.Request.Context(), "share.parse")
 	defer span.Finish()
-
-	span.Data = map[string]interface{}{
-		"Origin": "https://instagram.com" + c.Request.URL.String(),
-	}
 
 	req, err := http.NewRequest("GET", "https://instagram.com"+c.Request.URL.String(), nil)
 	if err != nil {
 		slog.Error("Failed to prepare request to follow redirects", slog.Any("err", err))
 		sentry.CaptureException(err)
-		c.HTML(http.StatusOK, "server_error.html", nil)
+		c.HTML(http.StatusOK, "embed.html", &HtmlOpenGraphData{
+			Title:       "VxInstagram - Server Error",
+			Description: "VxInstagram encountered a server side error while processing your request. Request ID:`" + span.SpanID.String() + "`",
+		})
 		return
 	}
 
@@ -61,7 +60,10 @@ func FollowShare(c *gin.Context) {
 	if err != nil {
 		slog.Error("Failed to follow redirects", slog.Any("err", err))
 		sentry.CaptureException(err)
-		c.HTML(http.StatusOK, "server_error.html", nil)
+		c.HTML(http.StatusOK, "embed.html", &HtmlOpenGraphData{
+			Title:       "VxInstagram - Server Error",
+			Description: "VxInstagram encountered a server side error while processing your request. Request ID:`" + span.SpanID.String() + "`",
+		})
 		return
 	}
 	res.Body.Close()
@@ -73,23 +75,27 @@ func FollowShare(c *gin.Context) {
 
 	// Redirect browsers to the post
 	if !strings.Contains(userAgent, "discord") {
-		span.Data["Redirect"] = true
 		c.Redirect(http.StatusPermanentRedirect, "https://instagram.com/reel/"+postId)
 		return
 	}
 
-	videoUrl, err := utils.GetCdnUrl(postId)
+	videoUrl, err := utils.ParseGQLData(postId)
 	if err != nil {
 		slog.Error("Failed to get video URL from instagram's CDN", slog.Any("err", err))
 		sentry.CaptureException(err)
-		c.HTML(http.StatusOK, "server_error.html", nil)
+		c.HTML(http.StatusOK, "embed.html", &HtmlOpenGraphData{
+			Title:       "VxInstagram - Server Error",
+			Description: "VxInstagram encountered a server side error while processing your request. Request ID:`" + span.SpanID.String() + "`",
+		})
 		return
 	}
 
 	if videoUrl == "" {
-		slog.Warn("Instagram returned an empty video URL. This most likely means the video is age restricted")
-		sentry.CaptureMessage("Instagram returned an empty video URL. This most likely means the video is age restricted")
-		c.HTML(http.StatusNoContent, "no_url.html", nil)
+		sentry.CaptureMessage("Instagram returned an empty video URL.")
+		c.HTML(http.StatusNoContent, "embed.html", &HtmlOpenGraphData{
+			Title:       "VxInstagram - Empty Response",
+			Description: "Instagram returned an empty URL. You'll need to watch this post in your browser. Sorry!",
+		})
 		return
 	}
 
@@ -97,7 +103,10 @@ func FollowShare(c *gin.Context) {
 	if err != nil {
 		slog.Error("Failed to parse CDN video URL", slog.Any("err", err))
 		sentry.CaptureException(err)
-		c.HTML(http.StatusOK, "server_error.html", nil)
+		c.HTML(http.StatusOK, "embed.html", &HtmlOpenGraphData{
+			Title:       "VxInstagram - Server Error",
+			Description: "VxInstagram encountered a server side error while processing your request. Request ID:`" + span.SpanID.String() + "`",
+		})
 		return
 	}
 

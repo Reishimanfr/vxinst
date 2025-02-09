@@ -106,5 +106,5 @@ func ParseGQLData(postId string) (string, error) {
 		}
 	}
 
-	return "", fmt.Errorf("no video_url found")
+	return "", nil
 }

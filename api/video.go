@@ -32,18 +32,25 @@ import (
 
 var ctx = context.Background()
 
+type HtmlOpenGraphData struct {
+	Title       string
+	Description string
+	URL         string
+	VideoURL    string
+	Color       int
+}
+
 func ServeVideo(c *gin.Context) {
 	postId := c.Param("id")
 
 	span := sentry.StartSpan(c.Request.Context(), "serve.video")
 	defer span.Finish()
 
-	span.Data = map[string]interface{}{
-		"Origin": "https://instagram.com/reel/" + postId,
-	}
-
 	if postId == "" || postId[0] != 'D' {
-		c.HTML(http.StatusNotFound, "invalid_id.html", nil)
+		c.HTML(http.StatusNotFound, "embed.html", &HtmlOpenGraphData{
+			Title:       "VxInstagram - Not found",
+			Description: "An invalid post ID was provided. Please make sure the URL is correct",
+		})
 		return
 	}
 
@@ -51,7 +58,6 @@ func ServeVideo(c *gin.Context) {
 
 	// Redirect browsers to the post
 	if !strings.Contains(userAgent, "discord") {
-		span.Data["Redirect"] = true
 		c.Redirect(http.StatusPermanentRedirect, "https://instagram.com/reel/"+postId)
 		return
 	}
@@ -60,21 +66,31 @@ func ServeVideo(c *gin.Context) {
 	if err != nil {
 		slog.Error("Failed to get video URL from graphQL data", slog.Any("err", err))
 		sentry.CaptureException(err)
-		c.HTML(http.StatusOK, "server_error.html", nil)
+		c.HTML(http.StatusOK, "embed.html", &HtmlOpenGraphData{
+			Title:       "VxInstagram - Error",
+			Description: "Something went wrong while processing your request. You'll need to watch this post in your browser. Sorry!\nError: ```" + err.Error() + "```",
+		})
 		return
 	}
 
 	if videoUrl == "" {
 		slog.Warn("Instagram returned an empty video URL")
 		sentry.CaptureMessage("Instagram returned an empty video URL")
-		c.HTML(http.StatusOK, "no_url.html", nil)
+		c.HTML(http.StatusOK, "embed.html", &HtmlOpenGraphData{
+			Title:       "VxInstagram - Empty Response",
+			Description: "Instagram returned an empty URL. You'll need to watch this post in your browser. Sorry!",
+		})
 		return
 	}
 
 	remote, err := url.Parse(videoUrl)
 	if err != nil {
 		slog.Error("Failed to parse CDN video URL", slog.Any("err", err))
-		c.HTML(http.StatusOK, "server_error.html", nil)
+		sentry.CaptureException(err)
+		c.HTML(http.StatusOK, "embed.html", &HtmlOpenGraphData{
+			Title:       "VxInstagram - Server Error",
+			Description: "VxInstagram encountered a server side error while processing your request. Request ID:`" + span.SpanID.String() + "`",
+		})
 		return
 	}
 
