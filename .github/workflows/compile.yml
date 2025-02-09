@@ -25,7 +25,7 @@ jobs:
           goarch: amd64
           goversion: 1.23
           binary_name: vxinstagram-linux-amd64
-          build_flags: "-tags=jsoniter"
+          build_flags: -tags=jsoniter
 
       - name: Release linux/arm64
         uses: wangyoucao577/go-release-action@v1
@@ -35,7 +35,7 @@ jobs:
           goarch: arm64
           goversion: 1.23
           binary_name: vxinstagram-linux-arm64
-          build_flags: "-tags=jsoniter"
+          build_flags: -tags=jsoniter
 
       - name: Release windows/amd64
         uses: wangyoucao577/go-release-action@v1
@@ -45,4 +45,4 @@ jobs:
           goarch: amd64
           goversion: 1.23
           binary_name: "vxinstagram-windows-amd64.exe"
-          build_flags: "-tags=jsoniter"
+          build_flags: -tags=jsoniter
