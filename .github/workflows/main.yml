@@ -1,0 +1,89 @@
+on:
+  push:
+    paths:
+      -  '**.go'
+  pull_request:
+    paths:
+      - '**.go'
+
+jobs:
+  build:
+    name: Build Go project
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: 1.23.4
+
+      - name: Install Dependencies
+        run: go mod tidy
+
+      - name: Build Binary for amd64
+        run: GOOS=linux GOARCH=amd64 go build -ldflags "-s -w" -tags=jsoniter -o vxinstagram-amd64 .
+
+      - name: Build Binary for arm
+        run: GOOS=linux GOARCH=arm64 go build -ldflags "-s -w" -tags=jsoniter -o vxinstagram-arm64 .
+
+      - name: Build Binary for Windows (ew)
+        run: GOOS=windows GOARCH=amd64 go build -ldflags "-s -w" -tags=jsoniter -o vxinstagram-windows-amd64.exe
+
+      - name: Upload Binary Artifact for amd64
+        uses: actions/upload-artifact@v4
+        with:
+          name: vxinstagram-amd64
+          path: vxinstagram-amd64
+
+      - name: Upload Binary Artifact for arm64
+        uses: actions/upload-artifact@v4
+        with:
+          name: vxinstagram-arm64
+          path: vxinstagram-arm64
+
+      - name: Upload Binary Artifact for windows (ew)
+        uses: actions/upload-artifact@v4
+        with:
+          name: vxinstagram-windows-amd64
+          path: vxinstagram-windows-arm64
+
+  release:
+    name: Create GitHub Release
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Download Linux AMD64 Binary
+        uses: actions/download-artifact@v4
+        with:
+          name: vxinstagram-amd64
+          path: .
+
+      - name: Download Linux ARM64 Binary
+        uses: actions/download-artifact@v4
+        with:
+          name: vxinstagram-arm64
+          path: .
+
+      - name: Download Windows AMD64 Binary
+        uses: actions/download-artifact@v4
+        with:
+          name: vxinstagram-windows-amd64
+          path: .
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            vxinstagram-amd64
+            vxinstagram-arm64
+            vxinstagram-windows-amd64.exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
