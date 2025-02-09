@@ -63,6 +63,11 @@ func main() {
 
 	r.GET("/share/:id", cache.CacheByRequestURI(st, cacheExpire), api.FollowShare)
 
+	// Redirect vxinstagram.com to README
+	r.GET("/", func(ctx *gin.Context) {
+		ctx.Redirect(http.StatusPermanentRedirect, "https://github.com/Reishimanfr/vxinstagram?tab=readme-ov-file#how-to-use")
+	})
+
 	if *flags.Secure {
 		slog.Info("Server running with TLS enabled", slog.String("listen", *flags.Port))
 		r.RunTLS(":"+*flags.Port, *flags.CertFile, *flags.KeyFile)
