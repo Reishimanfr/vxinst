@@ -48,7 +48,6 @@ func main() {
 	}
 
 	r := gin.New()
-
 	r.Use(gin.Recovery())
 	r.Use(gin.ErrorLogger())
 	r.Use(api.RateLimiterMiddleware(api.NewRateLimiter(5, 10)))
