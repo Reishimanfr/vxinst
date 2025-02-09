@@ -92,18 +92,14 @@ func Parse() {
 		os.Exit(1)
 	}
 
-	if !*RedisEnable {
-		slog.Warn("Caching is disabled. Every single new request will need to be re-fetched which may make everything really slow")
-	} else {
-		if *CacheLifetime <= 0 {
-			slog.Error("Cache lifetime must be greater than 0", slog.Int("lifetime", *CacheLifetime))
-			os.Exit(1)
-		}
+	if *CacheLifetime <= 0 {
+		slog.Error("Cache lifetime must be greater than 0", slog.Int("lifetime", *CacheLifetime))
+		os.Exit(1)
+	}
 
-		if *RedisEnable && *RedisDB == -1 {
-			slog.Error("No redis database provided")
-			os.Exit(1)
-		}
+	if *RedisEnable && *RedisDB == -1 {
+		slog.Error("No redis database provided")
+		os.Exit(1)
 	}
 
 	if *Secure {
