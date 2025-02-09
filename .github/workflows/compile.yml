@@ -9,40 +9,23 @@ on:
       - '**.go'
 
 jobs:
-  release-binaries:
-    name: Release Binaries
+  releases-matrix:
+    name: Release Matrix
     runs-on: ubuntu-latest
-    
+
+    strategy:
+      matrix:
+        goos: [linux, windows, darwin]
+        goarch: ["386", amd64"]
+        exclude:
+          - goarch: "386"
+            goos: windows
+          - goarch: "386"
+            goos: darwin
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-      
-      - name: Release linux/amd64 
-        uses: wangyoucao577/go-release-action@v1
-        with:
-          github_token: ${{ secrets.TOKEN }}
-          goos: linux
-          goarch: amd64
-          goversion: 1.23
-          binary_name: vxinstagram-linux-amd64
-          build_flags: -tags=jsoniter
-
-      - name: Release linux/arm64
-        uses: wangyoucao577/go-release-action@v1
-        with:
-          github_token: ${{ secrets.TOKEN }}
-          goos: linux
-          goarch: arm64
-          goversion: 1.23
-          binary_name: vxinstagram-linux-arm64
-          build_flags: -tags=jsoniter
-
-      - name: Release windows/amd64
-        uses: wangyoucao577/go-release-action@v1
-        with:
-          github_token: ${{ secrets.TOKEN }}
-          goos: windows
-          goarch: amd64
-          goversion: 1.23
-          binary_name: "vxinstagram-windows-amd64.exe"
-          build_flags: -tags=jsoniter
+          - uses: actions/checkout@v4
+          - uses: wangyoucao577/go-release-action@v1
+            with:
+              github_token: ${{ secrets.TOKEN }}
+              goos: ${{ matrix.goos }}
+              goarch: ${{ matrix.goarch }}
