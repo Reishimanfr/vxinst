@@ -43,7 +43,6 @@ func main() {
 			Password: *flags.RedisPasswd,
 			DB:       *flags.RedisDB,
 		})
-
 		st = persist.NewRedisStore(rdb)
 	}
 
