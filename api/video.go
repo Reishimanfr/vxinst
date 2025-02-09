@@ -22,8 +22,6 @@ import (
 	"context"
 	"log/slog"
 	"net/http"
-	"net/http/httputil"
-	"net/url"
 	"strings"
 
 	"github.com/getsentry/sentry-go"
@@ -83,33 +81,40 @@ func ServeVideo(c *gin.Context) {
 		return
 	}
 
-	remote, err := url.Parse(videoUrl)
-	if err != nil {
-		slog.Error("Failed to parse CDN video URL", slog.Any("err", err))
-		sentry.CaptureException(err)
-		c.HTML(http.StatusOK, "embed.html", &HtmlOpenGraphData{
-			Title:       "VxInstagram - Server Error",
-			Description: "VxInstagram encountered a server side error while processing your request. Request ID:`" + span.SpanID.String() + "`",
-		})
-		return
-	}
+	// remote, err := url.Parse(videoUrl)
+	// if err != nil {
+	// 	slog.Error("Failed to parse CDN video URL", slog.Any("err", err))
+	// 	sentry.CaptureException(err)
+	// 	c.HTML(http.StatusOK, "embed.html", &HtmlOpenGraphData{
+	// 		Title:       "VxInstagram - Server Error",
+	// 		Description: "VxInstagram encountered a server side error while processing your request. Request ID:`" + span.SpanID.String() + "`",
+	// 	})
+	// 	return
+	// }
 
-	proxy := httputil.NewSingleHostReverseProxy(remote)
-	proxy.Director = func(r *http.Request) {
-		r.Header = c.Request.Header
-		r.Host = remote.Host
-		r.URL = remote
-		r.Header = c.Request.Header.Clone()
+	// proxy := httputil.NewSingleHostReverseProxy(remote)
+	// proxy.Director = func(r *http.Request) {
+	// 	r.Header = c.Request.Header
+	// 	r.Host = remote.Host
+	// 	r.URL = remote
+	// 	r.Header = c.Request.Header.Clone()
 
-		hopHeaders := []string{
-			"Connection", "Keep-Alive", "Proxy-Authenticate", "Proxy-Authorization", "Te", "Trailer", "Transfer-Encoding",
-		}
+	// 	hopHeaders := []string{
+	// 		"Connection", "Keep-Alive", "Proxy-Authenticate", "Proxy-Authorization", "Te", "Trailer", "Transfer-Encoding",
+	// 	}
 
-		for _, h := range hopHeaders {
-			r.Header.Del(h)
-		}
-	}
+	// 	for _, h := range hopHeaders {
+	// 		r.Header.Del(h)
+	// 	}
+	// }
 
-	c.Header("Cache-Control", "max-age=43200")
-	proxy.ServeHTTP(c.Writer, c.Request)
+	// c.Header("Cache-Control", "max-age=43200")
+	// proxy.ServeHTTP(c.Writer, c.Request)
+
+	c.HTML(http.StatusOK, "embed.html", &HtmlOpenGraphData{
+		Title:       "VxInstagram",
+		Description: "",
+		URL:         "https://instagram.com/reel/" + postId,
+		VideoURL:    videoUrl,
+	})
 }

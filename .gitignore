@@ -1,3 +1,6 @@
 *.db
 vxinstagram
 docker-compose.yml
+
+*.cert
+*.key
