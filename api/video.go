@@ -2,6 +2,7 @@ package api
 
 import (
 	"bash06/vxinstagram/utils"
+	"context"
 	"log/slog"
 	"net/http"
 	"net/http/httputil"
@@ -11,6 +12,8 @@ import (
 	"github.com/getsentry/sentry-go"
 	"github.com/gin-gonic/gin"
 )
+
+var ctx = context.Background()
 
 func ServeVideo(c *gin.Context) {
 	postId := c.Param("id")
@@ -36,17 +39,17 @@ func ServeVideo(c *gin.Context) {
 		return
 	}
 
-	videoUrl, err := utils.GetCdnUrl(postId)
+	videoUrl, err := utils.ParseGQLData(postId)
 	if err != nil {
-		slog.Error("Failed to get video URL from instagram's CDN", slog.Any("err", err))
+		slog.Error("Failed to get video URL from graphQL data", slog.Any("err", err))
 		sentry.CaptureException(err)
 		c.HTML(http.StatusOK, "server_error.html", nil)
 		return
 	}
 
 	if videoUrl == "" {
-		slog.Warn("Instagram returned an empty video URL. This most likely means the video is age restricted")
-		sentry.CaptureMessage("Instagram returned an empty video URL. This most likely means the video is age restricted")
+		slog.Warn("Instagram returned an empty video URL")
+		sentry.CaptureMessage("Instagram returned an empty video URL")
 		c.HTML(http.StatusOK, "no_url.html", nil)
 		return
 	}

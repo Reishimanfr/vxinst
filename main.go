@@ -5,7 +5,6 @@ import (
 	"bash06/vxinstagram/flags"
 	"log/slog"
 	"net/http"
-	"os"
 	"time"
 
 	cache "github.com/chenyahui/gin-cache"
@@ -13,52 +12,40 @@ import (
 	"github.com/getsentry/sentry-go"
 	sentrygin "github.com/getsentry/sentry-go/gin"
 	"github.com/gin-gonic/gin"
-	"github.com/lmittmann/tint"
+	"github.com/go-redis/redis/v8"
 )
 
-var store = persist.NewMemoryStore(time.Minute * 1)
-
 func main() {
-	if err := flags.Parse(); err != nil {
-		panic(err)
+	flags.Parse()
+
+	if !*flags.GinLogs {
+		gin.SetMode(gin.ReleaseMode)
 	}
 
-	if err := sentry.Init(sentry.ClientOptions{
-		Dsn:              *flags.SentryDsn,
-		EnableTracing:    true,
-		TracesSampleRate: 1.0,
-	}); err != nil {
-		slog.Error("Failed to initialize sentry", slog.Any("err", err))
+	// Don't try to initialize sentry if no DSN provided
+	if *flags.SentryDsn != "" {
+		if err := sentry.Init(sentry.ClientOptions{
+			Dsn:              *flags.SentryDsn,
+			EnableTracing:    true,
+			TracesSampleRate: 1.0,
+		}); err != nil {
+			slog.Error("Failed to initialize sentry", slog.Any("err", err))
+		}
 	}
-
-	var level slog.Level
-
-	switch *flags.LogLevel {
-	case "error":
-		level = slog.LevelError
-	case "info":
-		level = slog.LevelInfo
-	case "warn":
-		level = slog.LevelWarn
-	case "debug":
-		level = slog.LevelDebug
-	default: // Impossible case
-		level = slog.LevelInfo
-	}
-
-	slog.SetDefault(slog.New(
-		tint.NewHandler(os.Stderr, &tint.Options{
-			Level:      level,
-			TimeFormat: time.Kitchen,
-		}),
-	))
-
-	// if *flags.SentryDsn != "" {
-	// fmt.Println("initializing sentryr")
-
-	// }
-
 	defer sentry.Flush(time.Second * 2)
+
+	cacheExpire := time.Minute * time.Duration(*flags.CacheLifetime)
+	var st persist.CacheStore = persist.NewMemoryStore(cacheExpire)
+
+	if *flags.RedisEnable {
+		rdb := redis.NewClient(&redis.Options{
+			Addr:     *flags.RedisAddr,
+			Password: *flags.RedisPasswd,
+			DB:       *flags.RedisDB,
+		})
+
+		st = persist.NewRedisStore(rdb)
+	}
 
 	r := gin.New()
 
@@ -68,18 +55,13 @@ func main() {
 	r.Use(sentrygin.New(sentrygin.Options{}))
 	r.LoadHTMLGlob("templates/*")
 
-	if *flags.GinLogs {
-		r.Use(gin.Logger())
-	} else {
-		gin.SetMode(gin.ReleaseMode)
-	}
+	// Endpoints
+	r.GET("/reel/:id", cache.CacheByRequestURI(st, cacheExpire), api.ServeVideo)
+	r.GET("/reels/:id", cache.CacheByRequestURI(st, cacheExpire), api.ServeVideo)
+	r.GET("/p/:id", cache.CacheByRequestURI(st, cacheExpire), api.ServeVideo)
+	r.GET("/favicon.ico", func(ctx *gin.Context) { ctx.Status(http.StatusOK) })
 
-	r.GET("/reel/:id", cache.CacheByRequestURI(store, time.Minute*1), api.ServeVideo)
-	r.GET("/reels/:id", cache.CacheByRequestURI(store, time.Minute*1), api.ServeVideo)
-	r.GET("/p/:id", cache.CacheByRequestURI(store, time.Minute*1), api.ServeVideo)
-	r.GET("/favicon.ico1", func(ctx *gin.Context) { ctx.Status(http.StatusOK) })
-
-	r.GET("/share/:id", cache.CacheByRequestURI(store, time.Minute*1), api.FollowShare)
+	r.GET("/share/:id", cache.CacheByRequestURI(st, cacheExpire), api.FollowShare)
 
 	if *flags.Secure {
 		slog.Info("Server running with TLS enabled", slog.String("listen", *flags.Port))

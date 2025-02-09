@@ -7,6 +7,7 @@ import (
 	"net/http"
 )
 
+// POSSIBLY NOT NEEDED
 // Attempts to get the URL to the reel directly from the CDN
 func GetCdnUrl(postId string) (string, error) {
 	origin := "https://instagram.com/p/" + postId + "/embed/captioned"
@@ -35,7 +36,7 @@ func GetCdnUrl(postId string) (string, error) {
 	slog.Debug("Scanning response body for video url")
 	for scanner.Scan() {
 		line := scanner.Text()
-		if url, found := ExtractUrl(line); found && url != "" {
+		if url, found := ExtractUrl(line, false); found && url != "" {
 			return url, nil
 		}
 	}

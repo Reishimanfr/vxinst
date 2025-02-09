@@ -13,4 +13,8 @@ services:
       - CERT_FILE=
       - KEY_FILE=
       - SENTRY_DSN=
+      - CACHE_LIFETIME=
+      - REDIS_ENABLE=
+      - REDIS_PASSWD=
+      - REDIS_DB=
     restart: unless-stopped
