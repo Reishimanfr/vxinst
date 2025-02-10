@@ -9,23 +9,46 @@ on:
       - '**.go'
 
 jobs:
-  releases-matrix:
-    name: Release Matrix
+  build:
+    name: Build Go Project
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        goos: [linux, windows, darwin]
-        goarch: ["386", amd64"]
-        exclude:
-          - goarch: "386"
-            goos: windows
-          - goarch: "386"
-            goos: darwin
     steps:
-          - uses: actions/checkout@v4
-          - uses: wangyoucao577/go-release-action@v1
-            with:
-              github_token: ${{ secrets.TOKEN }}
-              goos: ${{ matrix.goos }}
-              goarch: ${{ matrix.goarch }}
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: 1.23.4
+
+      - name: Install Dependencies
+        run: go mod tidy
+
+      - name: Build linux/amd64
+        run: GOOS=linux GOARCH=amd64 go build -ldflags "-s -w" -tags=jsoniter . -o vxinstagram-linux-amd64
+
+      - name: Build darwin/amd64
+        run: GOOS=darwin GOARCH=amd64 go build -ldflags "-s -w" -tags=jsoniter . -o vxinstagram-darwin-amd64
+
+      - name: Build windows/amd64 (yucky)
+        run: GOOS=windows GOARCH=amd64 go build -ldflags "-s -w" -tags=jsoniter . -o "vxinstagram-windows-amd64.exe"
+
+      - name: Upload Binary Artifact linux/amd64
+        uses: actions/upload-artifact@v4
+        with:
+          name: vxinstagram-linux-amd64
+          path: vxinstagram-linux-amd64
+
+      - name: Upload Binary Artifact darwin/amd64
+        uses: actions/upload-artifact@v4
+        with:
+          name: vxinstagram-darwin-amd64
+          path: vxinstagram-darwin-amd64
+
+      - name: Upload Binary Artifact linux/amd64
+        uses: actions/upload-artifact@v4
+        with:
+          name: "vxinstagram-windows-amd64.exe'
+          path: "vxinstagram-windows-amd64.exe"
+        
