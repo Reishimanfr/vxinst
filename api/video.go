@@ -66,7 +66,7 @@ func ServeVideo(c *gin.Context) {
 	var err error
 
 	videoUrl, err = utils.GetCdnUrl(postId)
-	if err != nil {
+	if err != nil || videoUrl == "" {
 		slog.Warn("Failed to scrape video URL from HTML. Trying to scrape from GraphQL")
 
 		attempt := 0
