@@ -64,42 +64,38 @@ func ServeVideo(c *gin.Context) {
 
 	var videoUrl string
 	var err error
-	attempt := 0
 
-	for {
-		if attempt >= 5 {
-			slog.Error("Failed to scrape video URL after 5 attempts")
-			break
+	videoUrl, err = utils.GetCdnUrl(postId)
+	if err != nil {
+		slog.Warn("Failed to scrape video URL from HTML. Trying to scrape from GraphQL")
+
+		attempt := 0
+
+		for {
+			if attempt >= 5 {
+				slog.Error("Failed to scrape video URL after 5 attempts")
+				break
+			}
+
+			attempt++
+
+			slog.Debug("Trying to get video url", slog.Int("attempt", attempt))
+
+			videoUrl, err = utils.GetCdnUrl(postId)
+			if err != nil {
+				slog.Debug("Failed to get video url", slog.Int("attempt", attempt))
+				continue
+			}
+
+			if videoUrl == "" {
+				slog.Debug("Got an empty URL, trying again...")
+				continue
+			}
+
+			if videoUrl != "" {
+				break
+			}
 		}
-
-		attempt++
-
-		slog.Debug("Trying to get video url", slog.Int("attempt", attempt))
-
-		videoUrl, err = utils.GetCdnUrl(postId)
-		if err != nil {
-			slog.Debug("Failed to get video url", slog.Int("attempt", attempt))
-			continue
-		}
-
-		if videoUrl == "" {
-			slog.Debug("Got an empty URL, trying again...")
-			continue
-		}
-
-		if videoUrl != "" {
-			break
-		}
-	}
-
-	if videoUrl == "" {
-		slog.Error("Failed to get video URL", slog.Any("err", err))
-		sentry.CaptureException(err)
-		c.HTML(http.StatusOK, "embed.html", &HtmlOpenGraphData{
-			Title:       "VxInstagram - Error",
-			Description: "Something went wrong while processing your request. You'll need to watch this post in your browser. Sorry!\nError: ```" + err.Error() + "```",
-		})
-		return
 	}
 
 	if videoUrl == "" {
