@@ -64,3 +64,12 @@ jobs:
         with:
           name: vxinstagram-darwin-amd64
           path: .
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            vxinstagram-linux-amd64
+            vxinstagram-darwin-amd64
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}

@@ -44,6 +44,7 @@ func ExtractUrl(s string, gql bool) (string, bool) {
 	}
 
 	// Thanks a lot for this tyler
+
 	// Find the first prefix
 	startIdx := strings.Index(s, pref)
 	if startIdx == -1 {
