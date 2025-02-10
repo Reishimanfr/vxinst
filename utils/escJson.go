@@ -35,7 +35,7 @@ func B2S(b []byte) string {
 func UnescapeJSONString(s string) string {
 	n := strings.IndexByte(s, '\\')
 	if n < 0 {
-		// Fast path - nothing to unescape.
+		// Fast path - nothing to unescape
 		return s
 	}
 
