@@ -37,7 +37,7 @@ type HtmlOpenGraphData struct {
 	Description string
 	URL         string
 	VideoURL    string
-	Color       int
+	Color       string
 }
 
 func ServeVideo(c *gin.Context) {
@@ -46,8 +46,8 @@ func ServeVideo(c *gin.Context) {
 	span := sentry.StartSpan(c.Request.Context(), "serve.video")
 	defer span.Finish()
 
-	if postId == "" || postId[0] != 'D' {
-		c.HTML(http.StatusNotFound, "embed.html", &HtmlOpenGraphData{
+	if postId == "" || postId[0] != 'D' && postId[0] != 'C' {
+		c.HTML(http.StatusOK, "embed.html", &HtmlOpenGraphData{
 			Title:       "VxInstagram - Not found",
 			Description: "An invalid post ID was provided. Please make sure the URL is correct",
 		})
@@ -62,9 +62,38 @@ func ServeVideo(c *gin.Context) {
 		return
 	}
 
-	videoUrl, err := utils.ParseGQLData(postId)
-	if err != nil {
-		slog.Error("Failed to get video URL from graphQL data", slog.Any("err", err))
+	var videoUrl string
+	var err error
+	attempt := 0
+
+	for {
+		if attempt >= 5 {
+			slog.Error("Failed to scrape video URL after 5 attempts")
+			break
+		}
+
+		attempt++
+
+		slog.Debug("Trying to get video url", slog.Int("attempt", attempt))
+
+		videoUrl, err = utils.GetCdnUrl(postId)
+		if err != nil {
+			slog.Debug("Failed to get video url", slog.Int("attempt", attempt))
+			continue
+		}
+
+		if videoUrl == "" {
+			slog.Debug("Got an empty URL, trying again...")
+			continue
+		}
+
+		if videoUrl != "" {
+			break
+		}
+	}
+
+	if videoUrl == "" {
+		slog.Error("Failed to get video URL", slog.Any("err", err))
 		sentry.CaptureException(err)
 		c.HTML(http.StatusOK, "embed.html", &HtmlOpenGraphData{
 			Title:       "VxInstagram - Error",

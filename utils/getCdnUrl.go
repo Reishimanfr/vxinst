@@ -38,7 +38,7 @@ func GetCdnUrl(postId string) (string, error) {
 	// Set the user agent to firefox on pc so we get the correct stuff
 	req.Header.Set("User-Agent", "Mozilla/5.0 (platform; rv:gecko-version) Gecko/gecko-trail Firefox/firefox-version")
 
-	client := &http.Client{}
+	client := GetIpRotationClient()
 
 	res, err := client.Do(req)
 	if err != nil {

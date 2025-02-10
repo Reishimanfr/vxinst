@@ -23,10 +23,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
-	"time"
 )
-
-var transport http.RoundTripper
 
 func ParseGQLData(postId string) (string, error) {
 	gqlParams := url.Values{
@@ -84,11 +81,7 @@ func ParseGQLData(postId string) (string, error) {
 		"X-Ig-App-Id":                 {"936619743392459"},
 	}
 
-	client := http.Client{
-		Transport: transport,
-		Timeout:   5 * time.Second,
-	}
-
+	client := GetIpRotationClient()
 	res, err := client.Do(req)
 	if err != nil {
 		return "", fmt.Errorf("graphQL request failed: %v", err)

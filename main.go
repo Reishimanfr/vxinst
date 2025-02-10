@@ -15,7 +15,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-package main 
+package main
 
 import (
 	"bash06/vxinstagram/api"
@@ -59,7 +59,7 @@ func main() {
 			Addr:     *flags.RedisAddr,
 			Password: *flags.RedisPasswd,
 			DB:       *flags.RedisDB,
-		}) 
+		})
 		st = persist.NewRedisStore(rdb)
 	}
 

@@ -23,6 +23,7 @@ import (
 	"os"
 	"slices"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/lmittmann/tint"
@@ -45,8 +46,22 @@ var (
 	RedisPasswd = pflag.StringP("redis-passwd", "P", getEnvDefault("REDIS_PASSWD", ""), "Password to redis database")
 	RedisDB     = pflag.IntP("redis-db", "D", getEnvDefaultInt("REDIS_DB", -1), "Redis database to use")
 
+	Proxies = pflag.StringArrayP("proxies", "X", getEnvDefaultStringSlice("PROXIES", []string{}), "Proxies to use for ip rotation")
+
 	logLevels = []string{"debug", "info", "warn", "error"}
 )
+
+func getEnvDefaultStringSlice(key string, defaultVaule []string) []string {
+	if value, exists := os.LookupEnv(key); exists {
+		slice := strings.Split(value, ",")
+
+		if len(slice) != 0 {
+			return slice
+		}
+	}
+
+	return defaultVaule
+}
 
 func getEnvDefault(key, defaultValue string) string {
 	if value, exists := os.LookupEnv(key); exists {
@@ -102,6 +117,10 @@ func Parse() {
 
 	if !slices.Contains(logLevels, *LogLevel) {
 		slog.Warn("Invalid logging level provided. Falling back to 'info'", slog.String("level", *LogLevel))
+	}
+
+	if len(*Proxies) <= 1 {
+		slog.Warn("No proxies provided. You're prone to rate limiting and being ip banned")
 	}
 
 	if _, err := strconv.Atoi(*Port); err != nil {
