@@ -46,22 +46,13 @@ var (
 	RedisPasswd = pflag.StringP("redis-passwd", "P", getEnvDefault("REDIS_PASSWD", ""), "Password to redis database")
 	RedisDB     = pflag.IntP("redis-db", "D", getEnvDefaultInt("REDIS_DB", -1), "Redis database to use")
 
-	Proxies = pflag.StringArrayP("proxies", "X", getEnvDefaultStringSlice("PROXIES", []string{}), "Proxies to use for ip rotation")
+	Proxies               = pflag.StringArrayP("proxies", "X", getEnvDefaultStringSlice("PROXIES", []string{}), "Proxies to use for ip rotation")
+	InstagramCookie       = pflag.String("insta-cookie", getEnvDefault("INSTA_COOKIE", ""), "Instagram cookie to fetch content")
+	InstagramXIGAppID     = pflag.String("insta-xigappid", getEnvDefault("INSTA_XIGAPPID", ""), "X-IG-App-ID to fetch content")
+	InstagramBrowserAgent = pflag.String("insta-browser-agent", getEnvDefault("INSTA_BROWSER_AGENT", "Mozilla/5.0 (X11; Linux x86_64; rv:135.0) Gecko/20100101 Firefox/135.0"), "Instagram browser agent to use")
 
 	logLevels = []string{"debug", "info", "warn", "error"}
 )
-
-func getEnvDefaultStringSlice(key string, defaultVaule []string) []string {
-	if value, exists := os.LookupEnv(key); exists {
-		slice := strings.Split(value, ",")
-
-		if len(slice) != 0 {
-			return slice
-		}
-	}
-
-	return defaultVaule
-}
 
 func getEnvDefault(key, defaultValue string) string {
 	if value, exists := os.LookupEnv(key); exists {
@@ -87,6 +78,18 @@ func getEnvDefaultBool(key string, defaultValue bool) bool {
 		}
 	}
 	return defaultValue
+}
+
+func getEnvDefaultStringSlice(key string, defaultVaule []string) []string {
+	if value, exists := os.LookupEnv(key); exists {
+		slice := strings.Split(value, ",")
+
+		if len(slice) != 0 {
+			return slice
+		}
+	}
+
+	return defaultVaule
 }
 
 func Parse() {

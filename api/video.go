@@ -22,11 +22,7 @@ import (
 	"context"
 	"log/slog"
 	"net/http"
-	"net/http/httputil"
-	"net/url"
-	"strings"
 
-	"github.com/getsentry/sentry-go"
 	"github.com/gin-gonic/gin"
 )
 
@@ -43,10 +39,11 @@ type HtmlOpenGraphData struct {
 func ServeVideo(c *gin.Context) {
 	postId := c.Param("id")
 
-	span := sentry.StartSpan(c.Request.Context(), "serve.video")
-	defer span.Finish()
+	// span := sentry.StartSpan(c.Request.Context(), "serve.video")
+	// defer span.Finish()
 
 	if postId == "" || postId[0] != 'D' && postId[0] != 'C' {
+		slog.Debug("Invalid post id provided")
 		c.HTML(http.StatusOK, "embed.html", &HtmlOpenGraphData{
 			Title:       "VxInstagram - Not found",
 			Description: "An invalid post ID was provided. Please make sure the URL is correct",
@@ -54,13 +51,13 @@ func ServeVideo(c *gin.Context) {
 		return
 	}
 
-	userAgent := strings.ToLower(c.Request.Header.Get("User-Agent"))
+	// userAgent := strings.ToLower(c.Request.Header.Get("User-Agent"))
 
-	// Redirect browsers to the post
-	if !strings.Contains(userAgent, "discord") {
-		c.Redirect(http.StatusPermanentRedirect, "https://instagram.com/reel/"+postId)
-		return
-	}
+	// // Redirect browsers to the post
+	// if !strings.Contains(userAgent, "discord") {
+	// 	c.Redirect(http.StatusPermanentRedirect, "https://instagram.com/reel/"+postId)
+	// 	return
+	// }
 
 	// videoUrl, err := utils.GetCdnUrl(postId)
 	// if err != nil || videoUrl == "" {
@@ -69,19 +66,26 @@ func ServeVideo(c *gin.Context) {
 	// 	videoUrl, err = utils.ParseGQLData(postId)
 	// }
 
-	var videoUrl string
-	var err error
-
-	videoUrl, err = utils.GetCdnUrl(postId)
+	postData, err := utils.ParseGQLData(postId)
 	if err != nil {
-		slog.Error("Failed to get CDN video URL", slog.Any("err", err))
-		sentry.CaptureException(err)
-		c.HTML(http.StatusOK, "embed.html", &HtmlOpenGraphData{
-			Title:       "VxInstagram - Not found",
-			Description: "An invalid post ID was provided. Please make sure the URL is correct",
-		})
+		slog.Error("request failed", slog.Any("err", err))
 		return
 	}
+
+	slog.Info("", slog.String("", postData.VideoVersions[0].URL))
+
+	// var videoUrl string
+
+	// videoUrl, err = utils.ParseGQLData(postId)
+	// if err != nil {
+	// 	slog.Error("Failed to get CDN video URL", slog.Any("err", err))
+	// 	sentry.CaptureException(err)
+	// 	c.HTML(http.StatusOK, "embed.html", &HtmlOpenGraphData{
+	// 		Title:       "VxInstagram - Not found",
+	// 		Description: "An invalid post ID was provided. Please make sure the URL is correct",
+	// 	})
+	// 	return
+	// }
 	// if err != nil || videoUrl == "" {
 	// 	slog.Warn("Failed to scrape video URL from HTML. Trying to scrape from GraphQL")
 
@@ -114,45 +118,45 @@ func ServeVideo(c *gin.Context) {
 	// 	}
 	// }
 
-	if videoUrl == "" {
-		slog.Warn("Instagram returned an empty video URL")
-		sentry.CaptureMessage("Instagram returned an empty video URL")
-		c.HTML(http.StatusOK, "embed.html", &HtmlOpenGraphData{
-			Title:       "VxInstagram - Empty Response",
-			Description: "Instagram returned an empty URL. You'll need to watch this post in your browser. Sorry!",
-		})
-		return
-	}
+	// if videoUrl == "" {
+	// 	slog.Warn("Instagram returned an empty video URL")
+	// 	sentry.CaptureMessage("Instagram returned an empty video URL")
+	// 	c.HTML(http.StatusOK, "embed.html", &HtmlOpenGraphData{
+	// 		Title:       "VxInstagram - Empty Response",
+	// 		Description: "Instagram returned an empty URL. You'll need to watch this post in your browser. Sorry!",
+	// 	})
+	// 	return
+	// }
 
-	remote, err := url.Parse(videoUrl)
-	if err != nil {
-		slog.Error("Failed to parse CDN video URL", slog.Any("err", err))
-		sentry.CaptureException(err)
-		c.HTML(http.StatusOK, "embed.html", &HtmlOpenGraphData{
-			Title:       "VxInstagram - Server Error",
-			Description: "VxInstagram encountered a server side error while processing your request. Request ID:`" + span.SpanID.String() + "`",
-		})
-		return
-	}
+	// remote, err := url.Parse(videoUrl)
+	// if err != nil {
+	// 	slog.Error("Failed to parse CDN video URL", slog.Any("err", err))
+	// 	sentry.CaptureException(err)
+	// 	c.HTML(http.StatusOK, "embed.html", &HtmlOpenGraphData{
+	// 		Title:       "VxInstagram - Server Error",
+	// 		Description: "VxInstagram encountered a server side error while processing your request. Request ID:`" + span.SpanID.String() + "`",
+	// 	})
+	// 	return
+	// }
 
-	proxy := httputil.NewSingleHostReverseProxy(remote)
-	proxy.Director = func(r *http.Request) {
-		r.Header = c.Request.Header
-		r.Host = remote.Host
-		r.URL = remote
-		r.Header = c.Request.Header.Clone()
+	// proxy := httputil.NewSingleHostReverseProxy(remote)
+	// proxy.Director = func(r *http.Request) {
+	// 	r.Header = c.Request.Header
+	// 	r.Host = remote.Host
+	// 	r.URL = remote
+	// 	r.Header = c.Request.Header.Clone()
 
-		hopHeaders := []string{
-			"Connection", "Keep-Alive", "Proxy-Authenticate", "Proxy-Authorization", "Te", "Trailer", "Transfer-Encoding",
-		}
+	// 	hopHeaders := []string{
+	// 		"Connection", "Keep-Alive", "Proxy-Authenticate", "Proxy-Authorization", "Te", "Trailer", "Transfer-Encoding",
+	// 	}
 
-		for _, h := range hopHeaders {
-			r.Header.Del(h)
-		}
-	}
+	// 	for _, h := range hopHeaders {
+	// 		r.Header.Del(h)
+	// 	}
+	// }
 
-	c.Header("Cache-Control", "max-age=43200")
-	proxy.ServeHTTP(c.Writer, c.Request)
+	// c.Header("Cache-Control", "max-age=43200")
+	// proxy.ServeHTTP(c.Writer, c.Request)
 
 	// c.HTML(http.StatusOK, "embed.html", &HtmlOpenGraphData{
 	// 	Title:       "VxInstagram",

@@ -18,14 +18,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 package api
 
 import (
-	"bash06/vxinstagram/utils"
-	"log/slog"
 	"net/http"
-	"net/http/httputil"
-	"net/url"
-	"strings"
 
-	"github.com/getsentry/sentry-go"
 	"github.com/gin-gonic/gin"
 )
 
@@ -42,90 +36,90 @@ var (
 // This means we have to first follow the redirects before we can actually embed
 // the post itself which is extremely annoying and slow
 func FollowShare(c *gin.Context) {
-	span := sentry.StartSpan(c.Request.Context(), "share.parse")
-	defer span.Finish()
+	// span := sentry.StartSpan(c.Request.Context(), "share.parse")
+	// defer span.Finish()
 
-	req, err := http.NewRequest("GET", "https://instagram.com"+c.Request.URL.String(), nil)
-	if err != nil {
-		slog.Error("Failed to prepare request to follow redirects", slog.Any("err", err))
-		sentry.CaptureException(err)
-		c.HTML(http.StatusOK, "embed.html", &HtmlOpenGraphData{
-			Title:       "VxInstagram - Server Error",
-			Description: "VxInstagram encountered a server side error while processing your request. Request ID:`" + span.SpanID.String() + "`",
-		})
-		return
-	}
+	// req, err := http.NewRequest("GET", "https://instagram.com"+c.Request.URL.String(), nil)
+	// if err != nil {
+	// 	slog.Error("Failed to prepare request to follow redirects", slog.Any("err", err))
+	// 	sentry.CaptureException(err)
+	// 	c.HTML(http.StatusOK, "embed.html", &HtmlOpenGraphData{
+	// 		Title:       "VxInstagram - Server Error",
+	// 		Description: "VxInstagram encountered a server side error while processing your request. Request ID:`" + span.SpanID.String() + "`",
+	// 	})
+	// 	return
+	// }
 
-	res, err := client.Do(req)
-	if err != nil {
-		slog.Error("Failed to follow redirects", slog.Any("err", err))
-		sentry.CaptureException(err)
-		c.HTML(http.StatusOK, "embed.html", &HtmlOpenGraphData{
-			Title:       "VxInstagram - Server Error",
-			Description: "VxInstagram encountered a server side error while processing your request. Request ID:`" + span.SpanID.String() + "`",
-		})
-		return
-	}
-	res.Body.Close()
+	// res, err := client.Do(req)
+	// if err != nil {
+	// 	slog.Error("Failed to follow redirects", slog.Any("err", err))
+	// 	sentry.CaptureException(err)
+	// 	c.HTML(http.StatusOK, "embed.html", &HtmlOpenGraphData{
+	// 		Title:       "VxInstagram - Server Error",
+	// 		Description: "VxInstagram encountered a server side error while processing your request. Request ID:`" + span.SpanID.String() + "`",
+	// 	})
+	// 	return
+	// }
+	// res.Body.Close()
 
-	urlSplit := strings.Split(res.Request.URL.String(), "/")
-	postId := urlSplit[len(urlSplit)-2]
+	// urlSplit := strings.Split(res.Request.URL.String(), "/")
+	// postId := urlSplit[len(urlSplit)-2]
 
-	userAgent := strings.ToLower(c.Request.Header.Get("User-Agent"))
+	// userAgent := strings.ToLower(c.Request.Header.Get("User-Agent"))
 
-	// Redirect browsers to the post
-	if !strings.Contains(userAgent, "discord") {
-		c.Redirect(http.StatusPermanentRedirect, "https://instagram.com/reel/"+postId)
-		return
-	}
+	// // Redirect browsers to the post
+	// if !strings.Contains(userAgent, "discord") {
+	// 	c.Redirect(http.StatusPermanentRedirect, "https://instagram.com/reel/"+postId)
+	// 	return
+	// }
 
-	videoUrl, err := utils.ParseGQLData(postId)
-	if err != nil {
-		slog.Error("Failed to get video URL from instagram's CDN", slog.Any("err", err))
-		sentry.CaptureException(err)
-		c.HTML(http.StatusOK, "embed.html", &HtmlOpenGraphData{
-			Title:       "VxInstagram - Server Error",
-			Description: "VxInstagram encountered a server side error while processing your request. Request ID:`" + span.SpanID.String() + "`",
-		})
-		return
-	}
+	// videoUrl, err := utils.ParseGQLData(postId)
+	// if err != nil {
+	// 	slog.Error("Failed to get video URL from instagram's CDN", slog.Any("err", err))
+	// 	sentry.CaptureException(err)
+	// 	c.HTML(http.StatusOK, "embed.html", &HtmlOpenGraphData{
+	// 		Title:       "VxInstagram - Server Error",
+	// 		Description: "VxInstagram encountered a server side error while processing your request. Request ID:`" + span.SpanID.String() + "`",
+	// 	})
+	// 	return
+	// }
 
-	if videoUrl == "" {
-		sentry.CaptureMessage("Instagram returned an empty video URL.")
-		c.HTML(http.StatusNoContent, "embed.html", &HtmlOpenGraphData{
-			Title:       "VxInstagram - Empty Response",
-			Description: "Instagram returned an empty URL. You'll need to watch this post in your browser. Sorry!",
-		})
-		return
-	}
+	// if videoUrl == "" {
+	// 	sentry.CaptureMessage("Instagram returned an empty video URL.")
+	// 	c.HTML(http.StatusNoContent, "embed.html", &HtmlOpenGraphData{
+	// 		Title:       "VxInstagram - Empty Response",
+	// 		Description: "Instagram returned an empty URL. You'll need to watch this post in your browser. Sorry!",
+	// 	})
+	// 	return
+	// }
 
-	remote, err := url.Parse(videoUrl)
-	if err != nil {
-		slog.Error("Failed to parse CDN video URL", slog.Any("err", err))
-		sentry.CaptureException(err)
-		c.HTML(http.StatusOK, "embed.html", &HtmlOpenGraphData{
-			Title:       "VxInstagram - Server Error",
-			Description: "VxInstagram encountered a server side error while processing your request. Request ID:`" + span.SpanID.String() + "`",
-		})
-		return
-	}
+	// remote, err := url.Parse(videoUrl)
+	// if err != nil {
+	// 	slog.Error("Failed to parse CDN video URL", slog.Any("err", err))
+	// 	sentry.CaptureException(err)
+	// 	c.HTML(http.StatusOK, "embed.html", &HtmlOpenGraphData{
+	// 		Title:       "VxInstagram - Server Error",
+	// 		Description: "VxInstagram encountered a server side error while processing your request. Request ID:`" + span.SpanID.String() + "`",
+	// 	})
+	// 	return
+	// }
 
-	proxy := httputil.NewSingleHostReverseProxy(remote)
-	proxy.Director = func(r *http.Request) {
-		r.Header = c.Request.Header
-		r.Host = remote.Host
-		r.URL = remote
-		r.Header = c.Request.Header.Clone()
+	// proxy := httputil.NewSingleHostReverseProxy(remote)
+	// proxy.Director = func(r *http.Request) {
+	// 	r.Header = c.Request.Header
+	// 	r.Host = remote.Host
+	// 	r.URL = remote
+	// 	r.Header = c.Request.Header.Clone()
 
-		hopHeaders := []string{
-			"Connection", "Keep-Alive", "Proxy-Authenticate", "Proxy-Authorization", "Te", "Trailer", "Transfer-Encoding",
-		}
+	// 	hopHeaders := []string{
+	// 		"Connection", "Keep-Alive", "Proxy-Authenticate", "Proxy-Authorization", "Te", "Trailer", "Transfer-Encoding",
+	// 	}
 
-		for _, h := range hopHeaders {
-			r.Header.Del(h)
-		}
-	}
+	// 	for _, h := range hopHeaders {
+	// 		r.Header.Del(h)
+	// 	}
+	// }
 
-	c.Header("Cache-Control", "max-age=43200")
-	proxy.ServeHTTP(c.Writer, c.Request)
+	// c.Header("Cache-Control", "max-age=43200")
+	// proxy.ServeHTTP(c.Writer, c.Request)
 }
