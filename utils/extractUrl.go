@@ -29,7 +29,7 @@ const (
 	gqlPrefixLen = len(gqlPrefix) + 1
 )
 
-// Extracts the url from escaped json
+// Extracts the url from escaped JSON
 func ExtractUrl(s string, gql bool) (string, bool) {
 	pref := prefix
 	qt := quote
