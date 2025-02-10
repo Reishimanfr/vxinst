@@ -10,7 +10,7 @@ on:
 
 jobs:
   build:
-    name: Build Go Project
+    name: Build Go project
     runs-on: ubuntu-latest
 
     steps:
@@ -25,14 +25,14 @@ jobs:
       - name: Install Dependencies
         run: go mod tidy
 
-      - name: Build linux/amd64
+      - name: Build Binary linux/amd64
         run: GOOS=linux GOARCH=amd64 go build -ldflags "-s -w" -tags=jsoniter -o vxinstagram-linux-amd64 .
 
-      - name: Build darwin/amd64
-        run: GOOS=darwin GOARCH=amd64 go build -ldflags "-s -w" -tags=jsoniter -o vxinstagram-darwin-amd64 .
+      - name: Build Binary darwin/amd64
+        run: GOOS=darwin GOARCH=arm64 go build -ldflags "-s -w" -tags=jsoniter -o vxinstagram-darwin-amd64 .
 
-      - name: Build windows/amd64 (yucky)
-        run: GOOS=windows GOARCH=amd64 go build -ldflags "-s -w" -tags=jsoniter -o "vxinstagram-windows-amd64.exe" .
+      - name: Build Binary windows/amd64
+        run: GOOS=windows GOARCH=amd64 go build -ldflags "-s -w" -tags=jsoniter -o vxinstagram-windows-amd64.exe
 
       - name: Upload Binary Artifact linux/amd64
         uses: actions/upload-artifact@v4
@@ -46,9 +46,36 @@ jobs:
           name: vxinstagram-darwin-amd64
           path: vxinstagram-darwin-amd64
 
-      - name: Upload Binary Artifact linux/amd64
+      - name: Upload Binary Artifact for Windows AMD64
         uses: actions/upload-artifact@v4
         with:
           name: "vxinstagram-windows-amd64.exe"
           path: "vxinstagram-windows-amd64.exe"
-        
+
+  release:
+    name: Create GitHub Release
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Download Linux AMD64 Binary
+        uses: actions/download-artifact@v4
+        with:
+          name: vxinstagram-linux-amd64
+          path: .
+
+      - name: Download Linux ARM64 Binary
+        uses: actions/download-artifact@v4
+        with:
+          name: vxinstagram-darwin-arm64
+          path: .
+
+      - name: Download Windows ARM64 Binary
+        uses: actions/download-artifact@v4
+        with:
+          name: "vxinstagram-windows-arm64.exe"
+          path: .
