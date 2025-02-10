@@ -112,7 +112,6 @@ func ServeVideo(c *gin.Context) {
 
 	c.Header("Cache-Control", "max-age=43200")
 	proxy.ServeHTTP(c.Writer, c.Request)
-
 	// c.HTML(http.StatusOK, "embed.html", &HtmlOpenGraphData{
 	// 	Title:       "VxInstagram",
 	// 	Description: "",

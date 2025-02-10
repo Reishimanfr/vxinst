@@ -65,9 +65,15 @@ jobs:
           name: vxinstagram-darwin-amd64
           path: .
 
+      - name: Get Commit Message
+        id: commit_message
+        run: echo "MESSAGE=$(git log -1 --pretty=%B)" >> $GITHUB_ENV
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
+          tag_name: ${{ github.ref_name }}
+          body: "${{ env.MESSAGE }}"
           files: |
             vxinstagram-linux-amd64
             vxinstagram-darwin-amd64
