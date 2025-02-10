@@ -62,19 +62,19 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Download Linux AMD64 Binary
+      - name: Download linux/ad64
         uses: actions/download-artifact@v4
         with:
           name: vxinstagram-linux-amd64
           path: .
 
-      - name: Download Linux ARM64 Binary
+      - name: Download darwin/amd64
         uses: actions/download-artifact@v4
         with:
-          name: vxinstagram-darwin-arm64
+          name: vxinstagram-darwin-amd64
           path: .
 
-      - name: Download Windows ARM64 Binary
+      - name: Download windows/amd64 (yucky)
         uses: actions/download-artifact@v4
         with:
           name: "vxinstagram-windows-arm64.exe"
