@@ -26,13 +26,13 @@ jobs:
         run: go mod tidy
 
       - name: Build linux/amd64
-        run: GOOS=linux GOARCH=amd64 go build -ldflags "-s -w" -tags=jsoniter -o vxinstagram-linux-amd64
+        run: GOOS=linux GOARCH=amd64 go build -ldflags "-s -w" -tags=jsoniter -o vxinstagram-linux-amd64 .
 
       - name: Build darwin/amd64
-        run: GOOS=darwin GOARCH=amd64 go build -ldflags "-s -w" -tags=jsoniter -o vxinstagram-darwin-amd64
+        run: GOOS=darwin GOARCH=amd64 go build -ldflags "-s -w" -tags=jsoniter -o vxinstagram-darwin-amd64 .
 
       - name: Build windows/amd64 (yucky)
-        run: GOOS=windows GOARCH=amd64 go build -ldflags "-s -w" -tags=jsoniter -o "vxinstagram-windows-amd64.exe"
+        run: GOOS=windows GOARCH=amd64 go build -ldflags "-s -w" -tags=jsoniter -o "vxinstagram-windows-amd64.exe" .
 
       - name: Upload Binary Artifact linux/amd64
         uses: actions/upload-artifact@v4
