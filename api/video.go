@@ -62,41 +62,57 @@ func ServeVideo(c *gin.Context) {
 		return
 	}
 
+	// videoUrl, err := utils.GetCdnUrl(postId)
+	// if err != nil || videoUrl == "" {
+	// 	slog.Warn("Failed to scrape video URL from HTML. Trying with GraphQL")
+
+	// 	videoUrl, err = utils.ParseGQLData(postId)
+	// }
+
 	var videoUrl string
 	var err error
 
 	videoUrl, err = utils.GetCdnUrl(postId)
-	if err != nil || videoUrl == "" {
-		slog.Warn("Failed to scrape video URL from HTML. Trying to scrape from GraphQL")
-
-		attempt := 0
-
-		for {
-			if attempt >= 5 {
-				slog.Error("Failed to scrape video URL after 5 attempts")
-				break
-			}
-
-			attempt++
-
-			slog.Debug("Trying to get video url", slog.Int("attempt", attempt))
-
-			videoUrl, err = utils.GetCdnUrl(postId)
-			if err != nil {
-				slog.Debug("Failed to get video url", slog.Int("attempt", attempt))
-				continue
-			}
-
-			if videoUrl == "" {
-				slog.Debug("Got an empty URL, trying again...")
-				continue
-			}
-
-			if videoUrl != "" {
-				break
-			}
-		}
+	if err != nil {
+		slog.Error("Failed to get CDN video URL", slog.Any("err", err))
+		sentry.CaptureException(err)
+		c.HTML(http.StatusOK, "embed.html", &HtmlOpenGraphData{
+			Title:       "VxInstagram - Not found",
+			Description: "An invalid post ID was provided. Please make sure the URL is correct",
+		})
+		return
 	}
+	// if err != nil || videoUrl == "" {
+	// 	slog.Warn("Failed to scrape video URL from HTML. Trying to scrape from GraphQL")
+
+	// 	attempt := 0
+
+	// 	for {
+	// 		if attempt >= 5 {
+	// 			slog.Error("Failed to scrape video URL after 5 attempts")
+	// 			break
+	// 		}
+
+	// 		attempt++
+
+	// 		slog.Debug("Trying to get video url", slog.Int("attempt", attempt))
+
+	// 		videoUrl, err = utils.GetCdnUrl(postId)
+	// 		if err != nil {
+	// 			slog.Debug("Failed to get video url", slog.Int("attempt", attempt))
+	// 			continue
+	// 		}
+
+	// 		if videoUrl == "" {
+	// 			slog.Debug("Got an empty URL, trying again...")
+	// 			continue
+	// 		}
+
+	// 		if videoUrl != "" {
+	// 			break
+	// 		}
+	// 	}
+	// }
 
 	if videoUrl == "" {
 		slog.Warn("Instagram returned an empty video URL")
