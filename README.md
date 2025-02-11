@@ -16,7 +16,7 @@ This will attempt to embed the instagram video:<br>
 <details>
 <summary>Click to show</summary>
 
-You can either compile the binary from source or download a precompiled binary from the [releases tab]().<br>
+You can either compile the binary from source or download a precompiled binary from the [releases tab](https://github.com/Reishimanfr/vxinstagram/releases).<br>
 
 ### Compilation
 ```ps
