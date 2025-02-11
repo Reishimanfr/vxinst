@@ -3,7 +3,7 @@ name: Build and upload Go binaries
 on:
   push:
     paths:
-      -  '**.go'
+      - '**.go'
   pull_request:
     paths:
       - '**.go'
@@ -31,9 +31,6 @@ jobs:
       - name: Build Binary darwin/amd64
         run: GOOS=darwin GOARCH=arm64 go build -ldflags "-s -w" -tags=jsoniter -o vxinstagram-darwin-amd64 .
 
-      - name: Build Binary windows/amd64
-        run: GOOS=windows GOARCH=amd64 go build -ldflags "-s -w" -tags=jsoniter -o vxinstagram-windows-amd64.exe
-
       - name: Upload Binary Artifact linux/amd64
         uses: actions/upload-artifact@v4
         with:
@@ -46,12 +43,6 @@ jobs:
           name: vxinstagram-darwin-amd64
           path: vxinstagram-darwin-amd64
 
-      - name: Upload Binary Artifact for Windows AMD64
-        uses: actions/upload-artifact@v4
-        with:
-          name: "vxinstagram-windows-amd64.exe"
-          path: "vxinstagram-windows-amd64.exe"
-
   release:
     name: Create GitHub Release
     needs: build
@@ -62,7 +53,11 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Download linux/ad64
+      - name: Get Latest Tag
+        id: get_tag
+        run: echo "TAG_NAME=$(git describe --tags --abbrev=0)" >> $GITHUB_ENV
+
+      - name: Download linux/amd64
         uses: actions/download-artifact@v4
         with:
           name: vxinstagram-linux-amd64
@@ -74,8 +69,12 @@ jobs:
           name: vxinstagram-darwin-amd64
           path: .
 
-      - name: Download windows/amd64 (yucky)
-        uses: actions/download-artifact@v4
-        with:
-          name: "vxinstagram-windows-arm64.exe"
-          path: .
+      - name: Create GitHub Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+        run: |
+          gh release create $TAG_NAME \
+            vxinstagram-linux-amd64 \
+            vxinstagram-darwin-amd64 \
+            --title "Release $TAG_NAME" \
+            --notes "Automated release for $TAG_NAME"
