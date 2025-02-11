@@ -76,5 +76,5 @@ jobs:
           gh release create $TAG_NAME \
             vxinstagram-linux-amd64 \
             vxinstagram-darwin-amd64 \
-            --title "Release $TAG_NAME" \
+            --title "$TAG_NAME" \
             --notes "Automated release for $TAG_NAME"
