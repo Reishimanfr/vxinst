@@ -23,25 +23,13 @@ const (
 	prefix    = `\"video_url\":`
 	quote     = `\"`
 	prefixLen = len(prefix) + 1
-
-	gqlPrefix    = `"video_url":`
-	gqlQuote     = `"`
-	gqlPrefixLen = len(gqlPrefix) + 1
 )
 
-// Extracts the url from escaped json
-func ExtractUrl(s string, gql bool) (string, bool) {
+// Extracts the video URL from response
+func ExtractUrl(s string) (string, bool) {
 	pref := prefix
 	qt := quote
 	len := prefixLen
-	slice := true
-
-	if gql {
-		pref = gqlPrefix
-		qt = gqlQuote
-		len = gqlPrefixLen
-		slice = false
-	}
 
 	// Thanks a lot for this tyler
 	// Find the first prefix
@@ -62,9 +50,5 @@ func ExtractUrl(s string, gql bool) (string, bool) {
 	result = UnescapeJSONString(result)
 	result = strings.ReplaceAll(result, `\/`, `/`)
 
-	if slice {
-		return result[1:], true
-	}
-
-	return result, true
+	return result[1:], true
 }

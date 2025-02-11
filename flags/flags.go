@@ -47,9 +47,12 @@ var (
 	RedisDB     = pflag.IntP("redis-db", "D", getEnvDefaultInt("REDIS_DB", -1), "Redis database to use")
 
 	Proxies               = pflag.StringArrayP("proxies", "X", getEnvDefaultStringSlice("PROXIES", []string{}), "Proxies to use for ip rotation")
+	ProxyScrapeHTML       = pflag.Bool("proxy-scrape-html", getEnvDefaultBool("PROXY_SCRAPE_HTML", false), "Sets if proxies can scrape HTML. May result in high bandwidth usage")
 	InstagramCookie       = pflag.String("insta-cookie", getEnvDefault("INSTA_COOKIE", ""), "Instagram cookie to fetch content")
 	InstagramXIGAppID     = pflag.String("insta-xigappid", getEnvDefault("INSTA_XIGAPPID", ""), "X-IG-App-ID to fetch content")
 	InstagramBrowserAgent = pflag.String("insta-browser-agent", getEnvDefault("INSTA_BROWSER_AGENT", "Mozilla/5.0 (X11; Linux x86_64; rv:135.0) Gecko/20100101 Firefox/135.0"), "Instagram browser agent to use")
+
+	RedirectBrowsers = pflag.Bool("redirect-browsers", getEnvDefaultBool("REDIRECT_BROWSERS", true), "Toggles if opening vxinstagram links in browser should redirect them to the post")
 
 	logLevels = []string{"debug", "info", "warn", "error"}
 )
