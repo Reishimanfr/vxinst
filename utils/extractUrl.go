@@ -17,7 +17,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 package utils
 
-import "strings"
+import (
+	"fmt"
+	"strings"
+)
 
 const (
 	prefix    = `\"video_url\":`
@@ -49,6 +52,8 @@ func ExtractUrl(s string) (string, bool) {
 	result := s[start : start+end]
 	result = UnescapeJSONString(result)
 	result = strings.ReplaceAll(result, `\/`, `/`)
+
+	fmt.Println(result)
 
 	return result[1:], true
 }

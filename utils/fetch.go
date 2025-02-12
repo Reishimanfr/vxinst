@@ -21,7 +21,6 @@ import (
 	"bash06/vxinstagram/flags"
 	"fmt"
 	"net/http"
-	"net/url"
 
 	jsoniter "github.com/json-iterator/go"
 )
@@ -74,17 +73,7 @@ func FetchPost(postId string) (*IgResponse, error) {
 
 	baseURL := "https://www.instagram.com/p/" + postId + "?__a=1&__d=dis"
 
-	url, err := url.Parse(baseURL)
-	if err != nil {
-		return nil, err
-	}
-
-	q := url.Query()
-	q.Set("__a", "1")
-	q.Set("__d", "dis")
-	url.RawQuery = q.Encode()
-
-	req, err := http.NewRequest("GET", url.String(), nil)
+	req, err := http.NewRequest("GET", baseURL, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -92,7 +81,11 @@ func FetchPost(postId string) (*IgResponse, error) {
 	req.Header.Set("User-Agent", *flags.InstagramBrowserAgent)
 	req.Header.Set("Cookie", *flags.InstagramCookie)
 	req.Header.Set("X-IG-App-ID", *flags.InstagramXIGAppID)
+
+	// Set headers so we look more like a real browser
 	req.Header.Set("Sec-Fetch-Site", "same-origin")
+	req.Header.Set("Origin", "https://www.instagram.com")
+	req.Header.Set("Referer", "https://www.instagram.com")
 
 	resp, err := GetIpRotationClient(5).Do(req)
 	if err != nil {
