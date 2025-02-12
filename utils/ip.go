@@ -22,6 +22,7 @@ import (
 	"log/slog"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 )
 
@@ -42,6 +43,13 @@ func GetIpRotationClient(timeout int) *http.Client {
 	// Get the next proxy and move it to the end
 	next := (*queue)[0]
 	*queue = append((*queue)[1:], next)
+
+	if strings.Contains(next, "localhost") {
+		return &http.Client{
+			Timeout: time.Duration(timeout) * time.Second,
+		}
+	}
+
 	proxyUrl, _ := url.Parse(next)
 
 	slog.Debug("Using random IP for request", slog.String("ip", proxyUrl.Host))

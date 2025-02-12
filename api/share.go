@@ -21,11 +21,18 @@ import (
 	"bash06/vxinstagram/flags"
 	"bash06/vxinstagram/utils"
 	"log/slog"
+	"bash06/vxinstagram/flags"
+	"bash06/vxinstagram/utils"
+	"log/slog"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
 	"strings"
+	"net/http/httputil"
+	"net/url"
+	"strings"
 
+	"github.com/getsentry/sentry-go"
 	"github.com/getsentry/sentry-go"
 	"github.com/gin-gonic/gin"
 )
@@ -68,7 +75,20 @@ func FollowShare(c *gin.Context) {
 		return
 	}
 	res.Body.Close()
+	res, err := client.Do(req)
+	if err != nil {
+		slog.Error("Failed to follow redirects", slog.Any("err", err))
+		sentry.CaptureException(err)
+		c.HTML(http.StatusOK, "embed.html", &HtmlOpenGraphData{
+			Title:       "VxInstagram - Server Error",
+			Description: "VxInstagram encountered a server side error while processing your request. Request ID:`" + span.SpanID.String() + "`",
+		})
+		return
+	}
+	res.Body.Close()
 
+	urlSplit := strings.Split(res.Request.URL.String(), "/")
+	postId := urlSplit[len(urlSplit)-2]
 	urlSplit := strings.Split(res.Request.URL.String(), "/")
 	postId := urlSplit[len(urlSplit)-2]
 
@@ -110,7 +130,27 @@ func FollowShare(c *gin.Context) {
 			})
 		}
 	}
+		videoUrl = data.Items[0].VideoVersions[0].URL
 
+		if videoUrl == "" {
+			slog.Debug("No video URL found! :(")
+			c.HTML(http.StatusOK, "embed.html", &HtmlOpenGraphData{
+				Title:       "VxInstagram - Empty Response",
+				Description: "Instagram returned an empty response meaning we can't embed the video. You'll need to watch it in your browser. Sorry!",
+			})
+		}
+	}
+
+	remote, err := url.Parse(videoUrl)
+	if err != nil {
+		slog.Error("Failed to parse CDN video URL", slog.Any("err", err))
+		sentry.CaptureException(err)
+		c.HTML(http.StatusOK, "embed.html", &HtmlOpenGraphData{
+			Title:       "VxInstagram - Server Error",
+			Description: "VxInstagram encountered a server side error while processing your request. Request ID:`" + span.SpanID.String() + "`",
+		})
+		return
+	}
 	remote, err := url.Parse(videoUrl)
 	if err != nil {
 		slog.Error("Failed to parse CDN video URL", slog.Any("err", err))
@@ -128,7 +168,16 @@ func FollowShare(c *gin.Context) {
 		r.Host = remote.Host
 		r.URL = remote
 		r.Header = c.Request.Header.Clone()
+	proxy := httputil.NewSingleHostReverseProxy(remote)
+	proxy.Director = func(r *http.Request) {
+		r.Header = c.Request.Header
+		r.Host = remote.Host
+		r.URL = remote
+		r.Header = c.Request.Header.Clone()
 
+		hopHeaders := []string{
+			"Connection", "Keep-Alive", "Proxy-Authenticate", "Proxy-Authorization", "Te", "Trailer", "Transfer-Encoding",
+		}
 		hopHeaders := []string{
 			"Connection", "Keep-Alive", "Proxy-Authenticate", "Proxy-Authorization", "Te", "Trailer", "Transfer-Encoding",
 		}
@@ -137,7 +186,14 @@ func FollowShare(c *gin.Context) {
 			r.Header.Del(h)
 		}
 	}
+		for _, h := range hopHeaders {
+			r.Header.Del(h)
+		}
+	}
 
+	slog.Debug("Success!")
+	c.Header("Cache-Control", "max-age=43200")
+	proxy.ServeHTTP(c.Writer, c.Request)
 	slog.Debug("Success!")
 	c.Header("Cache-Control", "max-age=43200")
 	proxy.ServeHTTP(c.Writer, c.Request)

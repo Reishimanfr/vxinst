@@ -125,10 +125,6 @@ func Parse() {
 		slog.Warn("Invalid logging level provided. Falling back to 'info'", slog.String("level", *LogLevel))
 	}
 
-	if len(*Proxies) <= 1 {
-		slog.Warn("No proxies provided. You're prone to rate limiting and being ip banned")
-	}
-
 	if _, err := strconv.Atoi(*Port); err != nil {
 		slog.Error("Port is not a valid integer", slog.String("port", *Port))
 		os.Exit(1)
@@ -182,5 +178,29 @@ func Parse() {
 				os.Exit(1)
 			}
 		}
+	}
+
+	if *SentryDsn == "" {
+		slog.Warn("No sentry DSN provided")
+	}
+
+	if *ProxyScrapeHTML {
+		slog.Warn("Scraping HTML with proxies is enabled. This may result in high bandwidth usage")
+	}
+
+	if len(*Proxies) <= 1 {
+		slog.Warn("No proxies provided. You're prone to rate limiting and being ip banned")
+	}
+
+	if *InstagramCookie == "" {
+		slog.Warn("No instagram cookie provided. The server won't attempt to make API requests for age-restricted reels")
+	}
+
+	if *InstagramXIGAppID == "" {
+		slog.Warn("No instagram X-IG-App-ID procided. The server won't attempt to make API requests for age-restricted reels")
+	}
+
+	if *InstagramBrowserAgent == "" {
+		slog.Warn("Invalid browser agent provided. The server won't attempt to make API requests for age-restricted reels")
 	}
 }
