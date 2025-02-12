@@ -41,7 +41,7 @@ type HtmlOpenGraphData struct {
 	Color       string
 }
 
-func ServeVideo(c *gin.Context) {
+func (h *Handler) ServeVideo(c *gin.Context) {
 	postId := c.Param("id")
 	slog.Debug("Got a request to process post", slog.String("id", postId))
 
@@ -67,34 +67,45 @@ func ServeVideo(c *gin.Context) {
 		}
 	}
 
-	// 1: Try to scrape the HTML
-	videoUrl, err := utils.ScrapeFromHTML(postId)
-	if err != nil || videoUrl == "" {
-		slog.Error("Failed to scrape video URL from HTML. Trying to make an API request...", slog.Any("err", err))
-		sentry.CaptureException(err)
+	var videoUrl string
+	create := false
 
-		// 2: Try to get the post data from an API request
-		data, err := utils.FetchPost(postId)
-		if err != nil {
-			slog.Error("Failed to fetch video URL from API. Critial failure!", slog.Any("err", err))
+	err := h.Db.Where("post_id = ?", postId).
+		First(&videoUrl).
+		Select("cdn_url").
+		Error
+	if err != nil {
+		slog.Debug("Reading from database failed")
+		create = true
+		// 1: Try to scrape the HTML
+		videoUrl, err = utils.ScrapeFromHTML(postId)
+		if err != nil || videoUrl == "" {
+			slog.Error("Failed to scrape video URL from HTML. Trying to make an API request...", slog.Any("err", err))
 			sentry.CaptureException(err)
 
-			c.HTML(http.StatusOK, "embed.html", &HtmlOpenGraphData{
-				Title:       "VxInstagram - Server Error",
-				Description: "VxInstagram encountered a server side error while processing your request. Request ID:`" + span.SpanID.String() + "`",
-			})
-			return
-		}
+			// 2: Try to get the post data from an API request
+			data, err := utils.FetchPost(postId)
+			if err != nil {
+				slog.Error("Failed to fetch video URL from API. Critial failure!", slog.Any("err", err))
+				sentry.CaptureException(err)
 
-		videoUrl = data.Items[0].VideoVersions[0].URL
+				c.HTML(http.StatusOK, "embed.html", &HtmlOpenGraphData{
+					Title:       "VxInstagram - Server Error",
+					Description: "VxInstagram encountered a server side error while processing your request. Request ID:`" + span.SpanID.String() + "`",
+				})
+				return
+			}
 
-		if videoUrl == "" {
-			slog.Debug("No video URL found! :(")
-			c.HTML(http.StatusOK, "embed.html", &HtmlOpenGraphData{
-				Title:       "VxInstagram - Empty Response",
-				Description: "Instagram returned an empty response meaning we can't embed the video. You'll need to watch it in your browser. Sorry!",
-			})
+			videoUrl = data.Items[0].VideoVersions[0].URL
 		}
+	}
+
+	if videoUrl == "" {
+		slog.Debug("No video URL found! :(")
+		c.HTML(http.StatusOK, "embed.html", &HtmlOpenGraphData{
+			Title:       "VxInstagram - Empty Response",
+			Description: "Instagram returned an empty response meaning we can't embed the video. You'll need to watch it in your browser. Sorry!",
+		})
 	}
 
 	remote, err := url.Parse(videoUrl)
@@ -127,4 +138,14 @@ func ServeVideo(c *gin.Context) {
 	slog.Debug("Success!")
 	c.Header("Cache-Control", "max-age=43200")
 	proxy.ServeHTTP(c.Writer, c.Request)
+
+	if create {
+		err := h.Db.Model(&utils.PostMemory{}).Create(&utils.PostMemory{
+			PostId: postId,
+			CdnURL: videoUrl,
+		}).Error
+		if err != nil {
+			slog.Error("Failed to save cdn url to memory database", slog.Any("err", err))
+		}
+	}
 }

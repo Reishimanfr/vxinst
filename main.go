@@ -20,8 +20,10 @@ package main
 import (
 	"bash06/vxinstagram/api"
 	"bash06/vxinstagram/flags"
+	"bash06/vxinstagram/utils"
 	"log/slog"
 	"net/http"
+	"os"
 	"time"
 
 	cache "github.com/chenyahui/gin-cache"
@@ -63,6 +65,14 @@ func main() {
 		st = persist.NewRedisStore(rdb)
 	}
 
+	db, err := utils.InitDb()
+	if err != nil {
+		slog.Error("Failed to initialize database", slog.Any("err", err))
+		os.Exit(1)
+	}
+
+	h := api.NewHandler(db)
+
 	r := gin.New()
 	r.Use(gin.Recovery())
 	r.Use(gin.ErrorLogger())
@@ -71,12 +81,12 @@ func main() {
 	r.LoadHTMLGlob("templates/*")
 
 	// Endpoints
-	r.GET("/reel/:id", cache.CacheByRequestURI(st, cacheExpire), api.ServeVideo)
-	r.GET("/reels/:id", cache.CacheByRequestURI(st, cacheExpire), api.ServeVideo)
-	r.GET("/p/:id", cache.CacheByRequestURI(st, cacheExpire), api.ServeVideo)
+	r.GET("/reel/:id", cache.CacheByRequestURI(st, cacheExpire), h.ServeVideo)
+	r.GET("/reels/:id", cache.CacheByRequestURI(st, cacheExpire), h.ServeVideo)
+	r.GET("/p/:id", cache.CacheByRequestURI(st, cacheExpire), h.ServeVideo)
 	r.GET("/favicon.ico", func(ctx *gin.Context) { ctx.Status(http.StatusOK) })
 
-	r.GET("/share/:id", cache.CacheByRequestURI(st, cacheExpire), api.FollowShare)
+	r.GET("/share/:id", cache.CacheByRequestURI(st, cacheExpire), h.FollowShare)
 
 	// Redirect vxinstagram.com to README
 	r.GET("/", func(ctx *gin.Context) {
