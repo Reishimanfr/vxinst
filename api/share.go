@@ -95,7 +95,10 @@ func (h *Handler) FollowShare(c *gin.Context) {
 		videoUrl, err = utils.ScrapeFromHTML(postId)
 		if err != nil || videoUrl == "" {
 			slog.Error("Failed to scrape video URL from HTML. Trying to make an API request...", slog.Any("err", err))
-			sentry.CaptureException(err)
+
+			if err != nil {
+				sentry.CaptureException(err)
+			}
 
 			// 2: Try to get the post data from an API request
 			data, err := utils.FetchPost(postId)
@@ -158,6 +161,7 @@ func (h *Handler) FollowShare(c *gin.Context) {
 			CdnURL: videoUrl,
 		}).Error
 		if err != nil {
+			sentry.CaptureException(err)
 			slog.Error("Failed to save cdn url to memory database", slog.Any("err", err))
 		}
 	}
