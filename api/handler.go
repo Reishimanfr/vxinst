@@ -17,14 +17,68 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 package api
 
-import "gorm.io/gorm"
+import (
+	"bash06/vxinstagram/flags"
+	"bash06/vxinstagram/middleware"
+	"net/http"
+	"time"
+
+	cache "github.com/chenyahui/gin-cache"
+	"github.com/chenyahui/gin-cache/persist"
+	sentrygin "github.com/getsentry/sentry-go/gin"
+	"github.com/gin-gonic/gin"
+	"github.com/go-redis/redis/v8"
+	"gorm.io/gorm"
+)
 
 type Handler struct {
-	Db *gorm.DB
+	Db     *gorm.DB
+	Router *gin.Engine
 }
 
+// Attaches middleware and sets endpoint funcs
 func NewHandler(db *gorm.DB) *Handler {
+	r := gin.New()
+
+	r.Use(
+		gin.Recovery(),
+		gin.ErrorLogger(),
+		middleware.RateLimiterMiddleware(middleware.NewRateLimiter(5, 10)),
+		middleware.CorsMiddleware(),
+		sentrygin.New(sentrygin.Options{}),
+	)
+
+	r.LoadHTMLGlob("templates/*")
+
 	return &Handler{
-		Db: db,
+		Db:     db,
+		Router: r,
 	}
+}
+
+func (h *Handler) Init() {
+	var st persist.CacheStore = persist.NewMemoryStore(time.Minute * 1)
+	cacheExpire := time.Minute * time.Duration(*flags.CacheLifetime)
+
+	if *flags.RedisEnable {
+		rdb := redis.NewClient(&redis.Options{
+			Addr:     *flags.RedisAddr,
+			Password: *flags.RedisPasswd,
+			DB:       *flags.RedisDB,
+		})
+
+		st = persist.NewRedisStore(rdb)
+	}
+
+	h.Router.GET("/reel/:id", cache.CacheByRequestURI(st, time.Minute*1), h.ServeVideo)
+	h.Router.GET("/reels/:id", cache.CacheByRequestURI(st, cacheExpire), h.ServeVideo)
+	h.Router.GET("/p/:id", cache.CacheByRequestURI(st, cacheExpire), h.ServeVideo)
+	h.Router.GET("/favicon.ico", func(ctx *gin.Context) { ctx.Status(http.StatusOK) })
+
+	h.Router.GET("/", func(ctx *gin.Context) {
+		ctx.Redirect(http.StatusPermanentRedirect, "https://github.com/Reishimanfr/vxinstagram?tab=readme-ov-file#how-to-use")
+	})
+
+	h.Router.GET("/share/:id", cache.CacheByRequestURI(st, cacheExpire), h.FollowShare)
+
 }

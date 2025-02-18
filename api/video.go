@@ -36,8 +36,8 @@ var ctx = context.Background()
 type HtmlOpenGraphData struct {
 	Title       string
 	Description string
-	URL         string
 	VideoURL    string
+	PostURL     string
 	Color       string
 }
 

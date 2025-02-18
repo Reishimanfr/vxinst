@@ -22,16 +22,11 @@ import (
 	"bash06/vxinstagram/flags"
 	"bash06/vxinstagram/utils"
 	"log/slog"
-	"net/http"
 	"os"
 	"time"
 
-	cache "github.com/chenyahui/gin-cache"
-	"github.com/chenyahui/gin-cache/persist"
 	"github.com/getsentry/sentry-go"
-	sentrygin "github.com/getsentry/sentry-go/gin"
 	"github.com/gin-gonic/gin"
-	"github.com/go-redis/redis/v8"
 )
 
 func main() {
@@ -53,18 +48,6 @@ func main() {
 	}
 	defer sentry.Flush(time.Second * 2)
 
-	cacheExpire := time.Minute * time.Duration(*flags.CacheLifetime)
-	var st persist.CacheStore = persist.NewMemoryStore(cacheExpire)
-
-	if *flags.RedisEnable {
-		rdb := redis.NewClient(&redis.Options{
-			Addr:     *flags.RedisAddr,
-			Password: *flags.RedisPasswd,
-			DB:       *flags.RedisDB,
-		})
-		st = persist.NewRedisStore(rdb)
-	}
-
 	db, err := utils.InitDb()
 	if err != nil {
 		slog.Error("Failed to initialize database", slog.Any("err", err))
@@ -72,32 +55,13 @@ func main() {
 	}
 
 	h := api.NewHandler(db)
-
-	r := gin.New()
-	r.Use(gin.Recovery())
-	r.Use(gin.ErrorLogger())
-	r.Use(api.RateLimiterMiddleware(api.NewRateLimiter(5, 10)))
-	r.Use(sentrygin.New(sentrygin.Options{}))
-	r.LoadHTMLGlob("templates/*")
-
-	// Endpoints
-	r.GET("/reel/:id", cache.CacheByRequestURI(st, cacheExpire), h.ServeVideo)
-	r.GET("/reels/:id", cache.CacheByRequestURI(st, cacheExpire), h.ServeVideo)
-	r.GET("/p/:id", cache.CacheByRequestURI(st, cacheExpire), h.ServeVideo)
-	r.GET("/favicon.ico", func(ctx *gin.Context) { ctx.Status(http.StatusOK) })
-
-	r.GET("/share/:id", cache.CacheByRequestURI(st, cacheExpire), h.FollowShare)
-
-	// Redirect vxinstagram.com to README
-	r.GET("/", func(ctx *gin.Context) {
-		ctx.Redirect(http.StatusPermanentRedirect, "https://github.com/Reishimanfr/vxinstagram?tab=readme-ov-file#how-to-use")
-	})
+	h.Init()
 
 	if *flags.Secure {
 		slog.Info("Server running with TLS enabled", slog.String("listen", *flags.Port))
-		r.RunTLS(":"+*flags.Port, *flags.CertFile, *flags.KeyFile)
+		h.Router.RunTLS(":"+*flags.Port, *flags.CertFile, *flags.KeyFile)
 	} else {
 		slog.Info("Server running", slog.String("listen", *flags.Port))
-		r.Run(":" + *flags.Port)
+		h.Router.Run(":" + *flags.Port)
 	}
 }
