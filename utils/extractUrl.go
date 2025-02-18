@@ -30,21 +30,17 @@ const (
 
 // Extracts the video URL from response
 func ExtractUrl(s string) (string, bool) {
-	pref := prefix
-	qt := quote
-	len := prefixLen
-
 	// Thanks a lot for this tyler
 	// Find the first prefix
-	startIdx := strings.Index(s, pref)
+	startIdx := strings.Index(s, prefix)
 	if startIdx == -1 {
 		return "", false
 	}
 
 	// Offset start by prefix len
-	start := startIdx + len
+	start := startIdx + prefixLen
 
-	end := strings.Index(s[start:], qt)
+	end := strings.Index(s[start:], quote)
 	if end == -1 {
 		return "", false
 	}
