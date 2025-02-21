@@ -18,38 +18,76 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 package utils
 
 import (
-	"fmt"
 	"strings"
 )
 
+type ExtractedData struct {
+	VideoURL     string
+	ThumbnailURL string
+	IsVideo      string
+	Title        string
+	Views        string
+	Comments     string
+	Likes        string
+	Username     string
+}
+
+var prefixes = map[string]string{
+	"VideoURL":     `\"video_url\":`,
+	"ThumbnailURL": `\"display_url\":`,
+	"IsVideo":      `\"is_video\":`,
+	"Title":        `\"title\":`,
+	"Views":        `\"video_views\":`,
+	"Comments":     `\"commenter_count\":`,
+	"Likes":        `\"likes_count\":`,
+	"Username":     `\"username\":`,
+}
+
 const (
-	prefix    = `\"video_url\":`
-	quote     = `\"`
-	prefixLen = len(prefix) + 1
+	quote = `\"`
 )
 
 // Extracts the video URL from response
-func ExtractUrl(s string) (string, bool) {
-	// Thanks a lot for this tyler
-	// Find the first prefix
-	startIdx := strings.Index(s, prefix)
-	if startIdx == -1 {
-		return "", false
+func ExtractUrl(s string) (*ExtractedData, bool) {
+	data := &ExtractedData{}
+	ok := false
+
+	for key, prefix := range prefixes {
+		startIdx := strings.Index(s, prefix)
+		if startIdx == -1 {
+			continue
+		}
+		start := startIdx + len(prefix) + 1
+		end := strings.Index(s[start:], quote)
+		if end == -1 {
+			continue
+		}
+
+		value := s[start : start+end]
+		value = UnescapeJSONString(value)
+		value = strings.ReplaceAll(value, `\/`, `/`)
+
+		switch key {
+		case "ThumbnailURL":
+			data.ThumbnailURL = value[1:]
+		case "Title":
+			data.Title = value[1:]
+		case "Views":
+			data.Views = value[1:]
+		case "Comments":
+			data.Comments = value[1:]
+		case "Likes":
+			data.Likes = value[1:]
+		case "Username":
+			data.Username = value[1:]
+		case "VideoURL":
+			data.VideoURL = value[1:]
+		case "IsVideo":
+			data.IsVideo = value[1:]
+		}
+
+		ok = true
 	}
 
-	// Offset start by prefix len
-	start := startIdx + prefixLen
-
-	end := strings.Index(s[start:], quote)
-	if end == -1 {
-		return "", false
-	}
-
-	result := s[start : start+end]
-	result = UnescapeJSONString(result)
-	result = strings.ReplaceAll(result, `\/`, `/`)
-
-	fmt.Println(result)
-
-	return result[1:], true
+	return data, ok
 }

@@ -22,8 +22,6 @@ import (
 	"bash06/vxinstagram/utils"
 	"log/slog"
 	"net/http"
-	"net/http/httputil"
-	"net/url"
 	"strings"
 
 	"github.com/getsentry/sentry-go"
@@ -83,6 +81,7 @@ func (h *Handler) FollowShare(c *gin.Context) {
 	}
 
 	var videoUrl string
+	var data *utils.ExtractedData
 	create := false
 
 	err = h.Db.Where("post_id = ?", postId).
@@ -92,7 +91,9 @@ func (h *Handler) FollowShare(c *gin.Context) {
 	if err != nil {
 		create = true
 		// 1: Try to scrape the HTML
-		videoUrl, err = utils.ScrapeFromHTML(postId)
+		data, err = utils.ScrapeFromHTML(postId)
+		videoUrl = data.VideoURL
+
 		if err != nil || videoUrl == "" {
 			slog.Error("Failed to scrape video URL from HTML. Trying to make an API request...", slog.Any("err", err))
 
@@ -125,35 +126,10 @@ func (h *Handler) FollowShare(c *gin.Context) {
 		})
 	}
 
-	remote, err := url.Parse(videoUrl)
-	if err != nil {
-		slog.Error("Failed to parse CDN video URL", slog.Any("err", err))
-		sentry.CaptureException(err)
-		c.HTML(http.StatusOK, "embed.html", &HtmlOpenGraphData{
-			Title:       "VxInstagram - Server Error",
-			Description: "VxInstagram encountered a server side error while processing your request. Request ID:`" + span.SpanID.String() + "`",
-		})
-		return
-	}
-
-	proxy := httputil.NewSingleHostReverseProxy(remote)
-	proxy.Director = func(r *http.Request) {
-		r.Header = c.Request.Header
-		r.Host = remote.Host
-		r.URL = remote
-		r.Header = c.Request.Header.Clone()
-
-		hopHeaders := []string{
-			"Connection", "Keep-Alive", "Proxy-Authenticate", "Proxy-Authorization", "Te", "Trailer", "Transfer-Encoding",
-		}
-		for _, h := range hopHeaders {
-			r.Header.Del(h)
-		}
-	}
-
-	slog.Debug("Success!")
-	c.Header("Cache-Control", "max-age=43200")
-	proxy.ServeHTTP(c.Writer, c.Request)
+	c.HTML(http.StatusOK, "embed.html", &HtmlOpenGraphData{
+		Title:    "❤️ " + data.Likes + "💬 " + data.Comments + "👀 " + data.Views,
+		VideoURL: videoUrl,
+	})
 
 	if create {
 		err := h.Db.Model(&utils.PostMemory{}).Create(&utils.PostMemory{

@@ -1,28 +1,28 @@
+</html>
+
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-        <meta property="og:title" content="{{.Title}}" />
-        <meta property="og:description" content="{{.Description}}" />
+    <meta property="og:title" content="{{.Title}}" />
+    <meta property="og:description" content="{{.Description}}" />
+    <meta property="og:type" content="video.other" />
 
-        <meta property="og:video" content="{{.VideoURL}}" />
-        <meta property="og:video:secure_url" content="{{.VideoURL}}" />
-        <meta property="og:video:type" content="video/mp4" />
-        <meta property="og:video:width" content="1280" />
-        <meta property="og:video:height" content="720" />
+    <meta property="og:video" content="{{.VideoURL}}" />
+    <meta property="og:video:secure_url" content="{{.VideoURL}}" />
+    <meta property="og:video:type" content="video/mp4" />
 
-        <meta property="twitter:player:width" content="1280" />
-        <meta property="twitter:player:height" content="720" />
-        <meta property="twitter:player:stream" content="{{.VideoURL}}" />
-        <meta property="twitter:player:stream:content_type" content="video/mp4" />
+    <meta name="twitter:card" content="player" />
+    <meta name="twitter:title" content="{{.Title}}" />
+    <meta name="twitter:description" content="{{.Description}}" />
+    <meta name="twitter:player" content="{{.VideoURL}}" />
 
-        <meta property="theme-color" content="{{.Color}}" />
-        <title>Vxinstgram</title>
+    <meta property="theme-color" content="#2b2d31" />
+    <title>{{.Title}}</title>
 </head>
-        <a href="{{.PostURL}}">
-                <p>If redirects don't work in your browser, click here to go to the original post</p>
-        </a>
 <body>
+    <video controls width="1280" height="720">
+        <source src="{{.VideoURL}}" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
 </body>
-
 </html>

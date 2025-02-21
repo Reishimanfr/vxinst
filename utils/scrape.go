@@ -26,13 +26,13 @@ import (
 	"time"
 )
 
-func ScrapeFromHTML(postId string) (string, error) {
+func ScrapeFromHTML(postId string) (*ExtractedData, error) {
 	origin := "https://instagram.com/p/" + postId + "/embed/captioned"
 
 	slog.Debug("Preparing request", slog.String("origin", origin))
 	req, err := http.NewRequest("GET", origin, nil)
 	if err != nil {
-		return "", fmt.Errorf("failed to prepare HTTP request: %v", err)
+		return nil, fmt.Errorf("failed to prepare HTTP request: %v", err)
 	}
 
 	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36")
@@ -49,7 +49,7 @@ func ScrapeFromHTML(postId string) (string, error) {
 
 	res, err := client.Do(req)
 	if err != nil {
-		return "", fmt.Errorf("HTTP request failed: %v", err)
+		return nil, fmt.Errorf("HTTP request failed: %v", err)
 	}
 
 	defer res.Body.Close()
@@ -60,15 +60,15 @@ func ScrapeFromHTML(postId string) (string, error) {
 	slog.Debug("Scanning response body for video url")
 	for scanner.Scan() {
 		line := scanner.Text()
-		if url, found := ExtractUrl(line); found && url != "" {
-			slog.Debug("Video URL found!")
-			return url, nil
+		if data, ok := ExtractUrl(line); ok {
+			slog.Debug("Data found!")
+			return data, nil
 		}
 	}
 
 	if err := scanner.Err(); err != nil {
-		return "", fmt.Errorf("error scanning response: %v", err)
+		return nil, fmt.Errorf("error scanning response: %v", err)
 	}
 
-	return "", nil
+	return nil, nil
 }
