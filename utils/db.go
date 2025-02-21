@@ -22,9 +22,13 @@ import (
 	"gorm.io/gorm"
 )
 
-type PostMemory struct {
-	PostId string `gorm:"primaryKey;unique;not null;index"`
-	CdnURL string `gorm:"not null"`
+type Post struct {
+	Id           string `gorm:"primaryKey;unique;not null;index"`
+	Title        string
+	PostURL      string `gorm:"not null"`
+	ThumbnailURL string
+	VideoURL     string `gorm:"not null"`
+	ExpiresAt    int64  `gorm:"not null"`
 }
 
 func InitDb() (*gorm.DB, error) {
@@ -33,7 +37,7 @@ func InitDb() (*gorm.DB, error) {
 		return nil, err
 	}
 
-	err = db.AutoMigrate(&PostMemory{})
+	err = db.AutoMigrate(&Post{})
 	if err != nil {
 		return nil, err
 	}

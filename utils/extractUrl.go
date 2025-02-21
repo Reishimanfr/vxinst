@@ -24,12 +24,12 @@ import (
 type ExtractedData struct {
 	VideoURL     string
 	ThumbnailURL string
-	IsVideo      string
-	Title        string
-	Views        string
-	Comments     string
-	Likes        string
-	Username     string
+	// IsVideo      string
+	Title string
+	// Views        string
+	// Comments     string
+	// Likes        string
+	Username string
 }
 
 var prefixes = map[string]string{
@@ -72,18 +72,18 @@ func ExtractUrl(s string) (*ExtractedData, bool) {
 			data.ThumbnailURL = value[1:]
 		case "Title":
 			data.Title = value[1:]
-		case "Views":
-			data.Views = value[1:]
-		case "Comments":
-			data.Comments = value[1:]
-		case "Likes":
-			data.Likes = value[1:]
+		// case "Views":
+		// 	data.Views = value[1:]
+		// case "Comments":
+		// 	data.Comments = value[1:]
+		// case "Likes":
+		// 	data.Likes = value[1:]
 		case "Username":
 			data.Username = value[1:]
 		case "VideoURL":
 			data.VideoURL = value[1:]
-		case "IsVideo":
-			data.IsVideo = value[1:]
+			// case "IsVideo":
+			// data.IsVideo = value[1:]
 		}
 
 		ok = true

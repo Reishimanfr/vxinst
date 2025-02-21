@@ -27,6 +27,7 @@ import (
 
 	"github.com/getsentry/sentry-go"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 func main() {
@@ -57,11 +58,53 @@ func main() {
 	h := api.NewHandler(db)
 	h.Init()
 
+	// Initialize ticker for database cleanup
+	go cleanDb(db)
+
 	if *flags.Secure {
 		slog.Info("Server running with TLS enabled", slog.String("listen", *flags.Port))
 		h.Router.RunTLS(":"+*flags.Port, *flags.CertFile, *flags.KeyFile)
 	} else {
 		slog.Info("Server running", slog.String("listen", *flags.Port))
 		h.Router.Run(":" + *flags.Port)
+	}
+
+}
+
+// Periodically cleans up expired records from the database
+func cleanDb(db *gorm.DB) {
+	ticker := time.NewTicker(1 * time.Second)
+
+	for range ticker.C {
+		slog.Debug("Tick! Cleaning up records")
+
+		toDelete := []string{}
+
+		err := db.
+			Model(utils.Post{}).
+			Where("expires_at < ?", time.Now().Unix()).
+			Select("id").
+			Find(&toDelete).
+			Error
+
+		if err != nil {
+			if err == gorm.ErrRecordNotFound {
+				slog.Debug("No records to cleanup")
+				return
+			}
+
+			slog.Error("Failed to cleanup records", slog.Any("err", err))
+			return
+		}
+
+		tx := db.Begin()
+		tx.Model(&utils.Post{}).Where("id IN ?", toDelete).Delete(nil)
+
+		if err := tx.Commit().Error; err != nil {
+			slog.Error("Failed to commit database transaction", slog.Any("err", err.Error))
+			return
+		} else {
+			slog.Debug("Old records deleted")
+		}
 	}
 }

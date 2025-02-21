@@ -23,9 +23,11 @@ import (
 	"log/slog"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/getsentry/sentry-go"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 var (
@@ -80,16 +82,25 @@ func (h *Handler) FollowShare(c *gin.Context) {
 		}
 	}
 
-	var videoUrl string
+	var record *utils.ExtractedData
 	var data *utils.ExtractedData
+	var videoUrl string
 	create := false
 
-	err = h.Db.Where("post_id = ?", postId).
-		First(&videoUrl).
-		Select("cdn_url").
+	err = h.Db.
+		Model(utils.Post{}).
+		Where("id = ?", postId).
+		Select("title", "post_url", "video_url", "thumbnail_url").
+		First(&record).
 		Error
 	if err != nil {
-		create = true
+		if err == gorm.ErrRecordNotFound {
+			slog.Debug("Database doesn't include CDN record")
+			create = true
+		} else {
+			slog.Error("Failed to read cache from database", slog.Any("err", err))
+		}
+
 		// 1: Try to scrape the HTML
 		data, err = utils.ScrapeFromHTML(postId)
 		videoUrl = data.VideoURL
@@ -107,15 +118,25 @@ func (h *Handler) FollowShare(c *gin.Context) {
 				slog.Error("Failed to fetch video URL from API. Critial failure!", slog.Any("err", err))
 				sentry.CaptureException(err)
 
-				c.HTML(http.StatusOK, "embed.html", &HtmlOpenGraphData{
-					Title:       "VxInstagram - Server Error",
-					Description: "VxInstagram encountered a server side error while processing your request. Request ID:`" + span.SpanID.String() + "`",
-				})
-				return
+				if err.Error() != "no instagram cookie provided" {
+					c.HTML(http.StatusOK, "embed.html", &HtmlOpenGraphData{
+						Title:       "VxInstagram - Server Error",
+						Description: "VxInstagram encountered a server side error while processing your request. Request ID:`" + span.SpanID.String() + "`",
+					})
+				}
+			} else {
+				videoUrl = data.Items[0].VideoVersions[0].URL
 			}
-
-			videoUrl = data.Items[0].VideoVersions[0].URL
 		}
+	}
+
+	if videoUrl == "" && data.ThumbnailURL != "" {
+		slog.Debug("Post didn't have a video but we found an image to show")
+
+		c.HTML(http.StatusOK, "embed.html", &HtmlOpenGraphData{
+			Title:    "@" + data.Username,
+			ImageURL: data.ThumbnailURL,
+		})
 	}
 
 	if videoUrl == "" {
@@ -127,14 +148,21 @@ func (h *Handler) FollowShare(c *gin.Context) {
 	}
 
 	c.HTML(http.StatusOK, "embed.html", &HtmlOpenGraphData{
-		Title:    "❤️ " + data.Likes + "💬 " + data.Comments + "👀 " + data.Views,
+		Title:    "@" + data.Username,
 		VideoURL: videoUrl,
+		PostURL:  "https://instagram.com/" + c.Request.URL.String(),
 	})
 
+	slog.Debug("Done!")
+
 	if create {
-		err := h.Db.Model(&utils.PostMemory{}).Create(&utils.PostMemory{
-			PostId: postId,
-			CdnURL: videoUrl,
+		err := h.Db.Model(&utils.Post{}).Create(&utils.Post{
+			Id:           postId,
+			VideoURL:     videoUrl,
+			ThumbnailURL: data.ThumbnailURL,
+			Title:        "@" + data.Username,
+			PostURL:      "https://instagram.com/" + c.Request.URL.String(),
+			ExpiresAt:    time.Now().Add(time.Hour * 168).Unix(), // TODO: make this a flag
 		}).Error
 		if err != nil {
 			sentry.CaptureException(err)
