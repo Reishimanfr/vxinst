@@ -73,7 +73,7 @@ func main() {
 
 // Periodically cleans up expired records from the database
 func cleanDb(db *gorm.DB) {
-	ticker := time.NewTicker(1 * time.Second)
+	ticker := time.NewTicker(5 * time.Minute)
 
 	for range ticker.C {
 		slog.Debug("Tick! Cleaning up records")
