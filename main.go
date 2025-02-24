@@ -81,7 +81,7 @@ func cleanDb(db *gorm.DB) {
 		toDelete := []string{}
 
 		err := db.
-			Model(utils.Post{}).
+			Model(&utils.ExtractedData{}).
 			Where("expires_at < ?", time.Now().Unix()).
 			Select("id").
 			Find(&toDelete).
@@ -98,7 +98,7 @@ func cleanDb(db *gorm.DB) {
 		}
 
 		tx := db.Begin()
-		tx.Model(&utils.Post{}).Where("id IN ?", toDelete).Delete(nil)
+		tx.Model(&utils.ExtractedData{}).Where("id IN ?", toDelete).Delete(nil)
 
 		if err := tx.Commit().Error; err != nil {
 			slog.Error("Failed to commit database transaction", slog.Any("err", err.Error))

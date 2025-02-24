@@ -70,15 +70,17 @@ func (h *Handler) Init() {
 		st = persist.NewRedisStore(rdb)
 	}
 
-	h.Router.GET("/reel/:id", cache.CacheByRequestURI(st, time.Minute*1), h.ServeVideo)
-	h.Router.GET("/reels/:id", cache.CacheByRequestURI(st, cacheExpire), h.ServeVideo)
-	h.Router.GET("/p/:id", cache.CacheByRequestURI(st, cacheExpire), h.ServeVideo)
-	h.Router.GET("/favicon.ico", func(ctx *gin.Context) { ctx.Status(http.StatusOK) })
+	// Cache is only enabled if we're not in debug mode
+	if !*flags.GinLogs {
+		h.Router.Use(cache.CacheByRequestURI(st, cacheExpire))
+	}
 
+	h.Router.GET("/reel/:id", h.ServeVideo)
+	h.Router.GET("/reels/:id", h.ServeVideo)
+	h.Router.GET("/p/:id", h.ServeVideo)
+	h.Router.GET("/favicon.ico", func(ctx *gin.Context) { ctx.Status(http.StatusOK) })
 	h.Router.GET("/", func(ctx *gin.Context) {
 		ctx.Redirect(http.StatusPermanentRedirect, "https://github.com/Reishimanfr/vxinstagram?tab=readme-ov-file#how-to-use")
 	})
-
-	h.Router.GET("/share/:id", cache.CacheByRequestURI(st, cacheExpire), h.FollowShare)
-
+	h.Router.GET("/share/:id", h.FollowShare)
 }

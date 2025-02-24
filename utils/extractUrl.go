@@ -22,13 +22,15 @@ import (
 )
 
 type ExtractedData struct {
-	VideoURL     string
+	Id           string `gorm:"primaryKey;unique;not null;index"`
+	PostURL      string `gorm:"not null"`
+	VideoURL     string `gorm:"not null"`
 	ThumbnailURL string
+	ExpiresAt    int64 `gorm:"not null"`
 	// IsVideo      string
-	Title string
-	// Views        string
-	// Comments     string
-	// Likes        string
+	Views    string
+	Comments string
+	Likes    string
 	Username string
 }
 
@@ -36,9 +38,8 @@ var prefixes = map[string]string{
 	"VideoURL":     `\"video_url\":`,
 	"ThumbnailURL": `\"display_url\":`,
 	"IsVideo":      `\"is_video\":`,
-	"Title":        `\"title\":`,
-	"Views":        `\"video_views\":`,
-	"Comments":     `\"commenter_count\":`,
+	"Views":        `\"video_view_count\":`,
+	"Comments":     `\"comments_count\":`,
 	"Likes":        `\"likes_count\":`,
 	"Username":     `\"username\":`,
 }
@@ -70,14 +71,12 @@ func ExtractUrl(s string) (*ExtractedData, bool) {
 		switch key {
 		case "ThumbnailURL":
 			data.ThumbnailURL = value[1:]
-		case "Title":
-			data.Title = value[1:]
-		// case "Views":
-		// 	data.Views = value[1:]
-		// case "Comments":
-		// 	data.Comments = value[1:]
-		// case "Likes":
-		// 	data.Likes = value[1:]
+		case "Views":
+			data.Views = value[1:(len(value) - 1)]
+		case "Comments":
+			data.Comments = value[1:(len(value) - 1)]
+		case "Likes":
+			data.Likes = value[1:(len(value) - 1)]
 		case "Username":
 			data.Username = value[1:]
 		case "VideoURL":

@@ -60,15 +60,15 @@ type IgResponse struct {
 // Should only be used if scraping HTML fails
 func FetchPost(postId string) (*IgResponse, error) {
 	if *flags.InstagramCookie == "" {
-		return nil, fmt.Errorf("no instagram cookie provided")
+		return nil, fmt.Errorf("bad flag: noinstagram cookie provided")
 	}
 
 	if *flags.InstagramXIGAppID == "" {
-		return nil, fmt.Errorf("no instagram x-ig-app-id provided")
+		return nil, fmt.Errorf("bad flag: no instagram x-ig-app-id provided")
 	}
 
 	if *flags.InstagramBrowserAgent == "" {
-		return nil, fmt.Errorf("invalid instagram browser agent provided")
+		return nil, fmt.Errorf("bad flag: invalid instagram browser agent provided")
 	}
 
 	baseURL := "https://www.instagram.com/p/" + postId + "?__a=1&__d=dis"

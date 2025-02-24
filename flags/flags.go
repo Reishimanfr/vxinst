@@ -39,7 +39,8 @@ var (
 	KeyFile   = pflag.StringP("key-file", "K", getEnvDefault("KEY_FILE", ""), "Path to the SSL key (only needed with secure enabled)")
 	SentryDsn = pflag.StringP("sentry-dsn", "d", getEnvDefault("SENTRY_DSN", ""), "Sentry DSN used for telemetry")
 
-	CacheLifetime = pflag.IntP("cache-lifetime", "L", getEnvDefaultInt("CACHE_LIFETIME", 60), "Cache lifetime (in minutes)")
+	CacheLifetime  = pflag.IntP("cache-lifetime", "L", getEnvDefaultInt("CACHE_LIFETIME", 60), "Cache lifetime (in minutes)")
+	MemoryLifetime = pflag.IntP("memory-lifetime", "M", getEnvDefaultInt("MEMORY_LIFETIME", 7), "Memory cache lifetime (in days)")
 
 	RedisEnable = pflag.BoolP("redis-enable", "r", getEnvDefaultBool("REDIS_ENABLE", false), "Enables redis")
 	RedisAddr   = pflag.StringP("redis-address", "A", getEnvDefault("REDIS_ADDR", ""), "Address to redis database for caching")
@@ -132,6 +133,11 @@ func Parse() {
 
 	if *CacheLifetime <= 0 {
 		slog.Error("Cache lifetime must be greater than 0", slog.Int("lifetime", *CacheLifetime))
+		os.Exit(1)
+	}
+
+	if *MemoryLifetime <= 0 {
+		slog.Error("Memory cache lifetime must be greater than 0", slog.Int("lifetime", *MemoryLifetime))
 		os.Exit(1)
 	}
 

@@ -22,22 +22,13 @@ import (
 	"gorm.io/gorm"
 )
 
-type Post struct {
-	Id           string `gorm:"primaryKey;unique;not null;index"`
-	Title        string
-	PostURL      string `gorm:"not null"`
-	ThumbnailURL string
-	VideoURL     string `gorm:"not null"`
-	ExpiresAt    int64  `gorm:"not null"`
-}
-
 func InitDb() (*gorm.DB, error) {
 	db, err := gorm.Open(sqlite.Open("data.db"))
 	if err != nil {
 		return nil, err
 	}
 
-	err = db.AutoMigrate(&Post{})
+	err = db.AutoMigrate(&ExtractedData{})
 	if err != nil {
 		return nil, err
 	}

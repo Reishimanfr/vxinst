@@ -83,6 +83,7 @@ The server can be configured using either command-line flags or environment vari
 | --key-file            | KEY_FILE              |          | Path to the SSL key (needed with secure mode)            |
 | --sentry-dsn          | SENTRY_DSN            |          | Sentry DSN used for telemetry                            |
 | --cache-lifetime      | CACHE_LIFETIME        | 60       | Time to keep cache for (in minutes)                      |
+| --memory-lifetime     | MEMORY_LIFETIME       | 7        | Time to keep memory cache for (in days)                  |
 | --redis-enable        | REDIS_ENABLE          | false    | Enables redis for caching (memory if set to false)       |
 | --redis-address       | REDIS_ADDR            |          | Address to redis database                                |
 | --redis-passwd        | REDIS_PASSWD          |          | Password for redis database                              |
@@ -90,8 +91,8 @@ The server can be configured using either command-line flags or environment vari
 | --proxies             | PROXIES               |          | Proxies to make request with. Provide multiple to cycle  | 
 | --proxy-scrape-html   | PROXY_SCRAPE_HTML     | false    | Sets if proxies should scrape HTML. May use up bandwidth |
 | --insta-cookie        | INSTA_COOKIE          |          | User cookie for API calls with for age restricted posts  |                       
-| --insta-xigappid      | INSTA_XIGAPPID        |          | X-IG-App-ID for API calls
-| --insta-browser-agent | INSTA_BROWSER_AGENT   | *        |
+| --insta-xigappid      | INSTA_XIGAPPID        |          | X-IG-App-ID for API calls                                |
+| --insta-browser-agent | INSTA_BROWSER_AGENT   | *        | <Firefox, Linux, X11>                                    |
 | --redirect-browsers   | REDIRECT_BROWSERS     | true     | Redirects browsers when URL opened in browser            |
 
 \* = Mozilla/5.0 (X11; Linux x86_64; rv:135.0) Gecko/20100101 Firefox/135.0
@@ -119,9 +120,9 @@ Run with TLS enabled, a proxy attached, redis for cache and instagram credential
 
 # 📋 Task list
 - [x]  ~~Find a way to fix some reels not embedding~~
-- [ ] Add Open Graph embeds to videos
+- [x] Add Open Graph embeds to videos
 - [ ] Add additional info (like the amount of likes) to the Open Graph embed
 - [ ] Add monitoring dashboard capabilities
-- [ ] Create deployment scripts (for docker and some services)
-- [ ] Create an action to automatically compile the binary and release it
+- [x] Create deployment scripts (for docker and some services)
+- [x] Create an action to automatically compile the binary and release it
 - [ ] Fix reels with usernames at the beginning not working (/:username/reel/:postId)
