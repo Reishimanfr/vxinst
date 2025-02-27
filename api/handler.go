@@ -80,7 +80,7 @@ func (h *Handler) Init() {
 	h.Router.GET("/p/:id", h.ServeVideo)
 	h.Router.GET("/favicon.ico", func(ctx *gin.Context) { ctx.Status(http.StatusOK) })
 	h.Router.GET("/", func(ctx *gin.Context) {
-		ctx.Redirect(http.StatusPermanentRedirect, "https://github.com/Reishimanfr/vxinstagram?tab=readme-ov-file#how-to-use")
+		http.ServeFile(ctx.Writer, ctx.Request, "main.html")
 	})
 	h.Router.GET("/share/:id", h.FollowShare)
 }

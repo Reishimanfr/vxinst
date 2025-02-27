@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="VxInstagram - Fix Instagram video embeds in Discord and other apps. Easy to use, open-source solution for proper Instagram video embedding.">
+        <meta name="keywords" content="Instagram, Discord, video embed, Instagram fix, social media, embedding tool">
+        <meta name="author" content="VxInstagram">
+        <meta name="robots" content="index, follow">
+        <meta property="og:title" content="VxInstagram - Fix Instagram Video Embeds">
+        <meta property="og:description" content="Make Instagram videos embed properly in Discord and other apps with VxInstagram.">
+        <meta property="og:type" content="website">
+        <meta property="og:image" content="/assets/demo.png">
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:title" content="VxInstagram - Fix Instagram Video Embeds">
+        <meta name="twitter:description" content="Make Instagram videos embed properly in Discord and other apps with VxInstagram.">
+        <meta name="twitter:image" content="/assets/demo.png">
+        <title>VxInstagram - Fix Instagram Video Embeds</title>
+        <style>
+                :root {
+                        --primary: #405DE6;
+                        --secondary: #5851DB;
+                        --gradient-start: #833AB4;
+                        --gradient-mid: #C13584;
+                        --gradient-end: #E1306C;
+                        --dark: #222;
+                        --light: #f8f9fa;
+                        --code-bg: #f5f5f5;
+                }
+
+                * {
+                        margin: 0;
+                        padding: 0;
+                        box-sizing: border-box;
+                }
+
+                body {
+                        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+                        line-height: 1.6;
+                        color: var(--dark);
+                        background-color: var(--light);
+                }
+
+                header {
+                        background: linear-gradient(45deg, var(--gradient-start), var(--gradient-mid), var(--gradient-end));
+                        color: white;
+                        padding: 2rem 0;
+                        text-align: center;
+                }
+
+                .logo {
+                        font-size: 2.5rem;
+                        font-weight: bold;
+                        margin-bottom: 1rem;
+                }
+
+                .container {
+                        max-width: 1200px;
+                        margin: 0 auto;
+                        padding: 0 2rem;
+                }
+
+                section {
+                        padding: 3rem 0;
+                        border-bottom: 1px solid #eaeaea;
+                }
+
+                h1,
+                h2,
+                h3 {
+                        margin-bottom: 1rem;
+                }
+
+                p {
+                        margin-bottom: 1.5rem;
+                }
+
+                .demo {
+                        background-color: var(--code-bg);
+                        border-radius: 8px;
+                        padding: 1.5rem;
+                        margin: 1.5rem 0;
+                        overflow: auto;
+                }
+
+                code {
+                        font-family: 'Courier New', Courier, monospace;
+                        background-color: #f0f0f0;
+                        padding: 0.2rem 0.4rem;
+                        border-radius: 4px;
+                        font-size: 0.9rem;
+                }
+
+                pre {
+                        background-color: var(--dark);
+                        color: white;
+                        padding: 1rem;
+                        border-radius: 8px;
+                        overflow-x: auto;
+                        margin-bottom: 1.5rem;
+                }
+
+                .feature-grid {
+                        display: grid;
+                        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+                        gap: 2rem;
+                        margin: 2rem 0;
+                }
+
+                .feature-card {
+                        background-color: white;
+                        border-radius: 8px;
+                        padding: 1.5rem;
+                        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                        transition: transform 0.3s ease;
+                }
+
+                .feature-card:hover {
+                        transform: translateY(-5px);
+                }
+
+                .feature-card h3 {
+                        color: var(--primary);
+                }
+
+                .cta {
+                        background-color: var(--primary);
+                        color: white;
+                        padding: 0.8rem 1.5rem;
+                        border-radius: 4px;
+                        text-decoration: none;
+                        display: inline-block;
+                        font-weight: bold;
+                        transition: background-color 0.3s ease;
+                }
+
+                .cta:hover {
+                        background-color: var(--secondary);
+                }
+
+                table {
+                        width: 100%;
+                        border-collapse: collapse;
+                        margin: 1.5rem 0;
+                }
+
+                table,
+                th,
+                td {
+                        border: 1px solid #ddd;
+                }
+
+                th,
+                td {
+                        padding: 12px;
+                        text-align: left;
+                }
+
+                th {
+                        background-color: var(--primary);
+                        color: white;
+                }
+
+                tr:nth-child(even) {
+                        background-color: #f2f2f2;
+                }
+
+                .embed-demo {
+                        text-align: center;
+                        margin: 2rem 0;
+                }
+
+                .embed-demo img {
+                        max-width: 100%;
+                        border-radius: 8px;
+                        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+                }
+
+                details {
+                        margin-bottom: 1rem;
+                        border: 1px solid #eaeaea;
+                        border-radius: 8px;
+                        padding: 1rem;
+                }
+
+                summary {
+                        font-weight: bold;
+                        cursor: pointer;
+                }
+
+                details[open] summary {
+                        margin-bottom: 1rem;
+                }
+
+                footer {
+                        background-color: var(--dark);
+                        color: white;
+                        padding: 2rem 0;
+                        text-align: center;
+                }
+
+                .footer-links {
+                        display: flex;
+                        justify-content: center;
+                        margin-top: 1rem;
+                }
+
+                .footer-links a {
+                        color: white;
+                        margin: 0 1rem;
+                        text-decoration: none;
+                }
+
+                .footer-links a:hover {
+                        text-decoration: underline;
+                }
+
+                @media (max-width: 768px) {
+                        .feature-grid {
+                                grid-template-columns: 1fr;
+                        }
+                }
+        </style>
+</head>
+
+<body>
+        <header>
+                <div class="container">
+                        <div class="logo">VxInstagram</div>
+                        <p>Fix Instagram video embeds in Discord and other apps</p>
+                </div>
+        </header>
+
+        <section id="intro">
+                <div class="container">
+                        <h1>What is VxInstagram?</h1>
+                        <p>VxInstagram is an open-source, blazing fast server that scrapes the direct URL to a video
+                                from Instagram's CDN to fix embedding in apps like Discord.</p>
+
+                        <div class="embed-demo">
+                                <img src="assets/demo.png" alt="VxInstagram embed demo">
+                                <p><em>A VxInstagram video properly embedding in Discord</em></p>
+                        </div>
+                </div>
+        </section>
+
+        <section id="usage">
+                <div class="container">
+                        <h2>How to Use VxInstagram</h2>
+                        <p>Using VxInstagram is incredibly simple. Just add <code>vx</code> to Instagram URLs like so:
+                        </p>
+
+                        <div class="demo">
+                                <code>https://vxinstagram.com/...</code>
+                        </div>
+
+                        <div class="feature-grid">
+                                <div class="feature-card">
+                                        <h3>Easy to Use</h3>
+                                        <p>Simply add "vx" to any Instagram URL to get proper video embeds.</p>
+                                </div>
+                                
+                                <div class="feature-card">
+                                        <h3>Open Graph Support</h3>
+                                        <p>VxInstagram provides Open Graph embeds for better preview on various platforms.</p>
+                                </div>
+                                <div class="feature-card">
+                                        <h3>Quick Loading</h3>
+                                        <p>VxInstagram loads quickly, ensuring smooth and efficient video embedding with minimal delays.</p>
+                                </div>
+                                <div class="feature-card">
+                                        <h3>Lightweight</h3>
+                                        <p>VxInstagram is lightweight and uses very little RAM and CPU to function making it perfect for home servers.</p>
+                                </div>
+                                <div class="feature-card">
+                                        <h3>Long Cache Times</h3>
+                                        <p>Processed posts are kept in cache for long perdiods of time to speed up repeated requests (like when you want to share a post with multiple friends at once!).</p>
+                                </div>
+                                <div class="feature-card">
+                                        <h3>Easy Configuration</h3>
+                                        <p>Setting up VxInstagram is hassle-free, with flag or environment variables based configuration.</p>
+                                </div>
+                        </div>
+
+                </div>
+        </section>
+
+        <section id="self-hosting">
+                <div class="container">
+                        <h2>Self-Hosting Options</h2>
+                        <p>VxInstagram can be self-hosted on various platforms:</p>
+
+                        <details>
+                                <summary>🍏 Mac and Linux 🐧</summary>
+                                <p>You can either compile the binary from source or download a precompiled binary from
+                                        the <a href="https://github.com/Reishimanfr/vxinstagram/releases">releases
+                                                tab</a>.</p>
+
+                                <h3>Compilation</h3>
+                                <pre>
+# Clone the repository
+git clone --depth=1 https://github.com/Reishimanfr/vxinstagram
+
+# Cd into the directory
+cd vxinstagram
+
+# Compile the code
+go build -ldflags "-s -w" -tags=jsoniter -o vxinsta</pre>
+                        </details>
+
+                        <details>
+                                <summary>🪟 Windows</summary>
+                                <p>There are no precompiled binaries for Windows meaning you'll need to compile the code
+                                        from source.</p>
+
+                                <pre>
+# Clone the repository
+git clone --depth=1 https://github.com/Reishimanfr/vxinstagram
+
+# Cd into the directory
+cd vxinstagram
+
+# Compile the code
+go build -ldflags "-s -w" -tags=jsoniter -o vxinsta.exe</pre>
+                        </details>
+
+                        <details>
+                                <summary>🐋 Docker</summary>
+                                <pre>
+# Copy the example docker-compose file
+cp docker-compose.yml.example docker-compose.yml
+
+# Edit the docker-compose file
+vim docker-compose.yml
+
+# Start the container
+docker-compose up -d</pre>
+                        </details>
+                </div>
+        </section>
+
+        <section id="configuration">
+                <div class="container">
+                        <h2>⚙️ Configuration</h2>
+                        <p>The server can be configured using either command-line flags or environment variables. Flags
+                                take precedence over environment variables.</p>
+
+                        <table>
+                                <thead>
+                                        <tr>
+                                                <th>Flag</th>
+                                                <th>Environment Variable</th>
+                                                <th>Default</th>
+                                                <th>Description</th>
+                                        </tr>
+                                </thead>
+                                <tbody>
+                                        <tr>
+                                                <td>--port</td>
+                                                <td>PORT</td>
+                                                <td>8080</td>
+                                                <td>Port to run the server on</td>
+                                        </tr>
+                                        <tr>
+                                                <td>--gin-logs</td>
+                                                <td>GIN_LOGS</td>
+                                                <td>false</td>
+                                                <td>Enable gin debug logs</td>
+                                        </tr>
+                                        <tr>
+                                                <td>--secure</td>
+                                                <td>SECURE</td>
+                                                <td>false</td>
+                                                <td>Use a secure connection</td>
+                                        </tr>
+                                        <tr>
+                                                <td>--log-level</td>
+                                                <td>LOG_LEVEL</td>
+                                                <td>info</td>
+                                                <td>Logging verbosity level [debug, error, warn, info]</td>
+                                        </tr>
+                                        <tr>
+                                                <td>--cert-file</td>
+                                                <td>CERT_FILE</td>
+                                                <td></td>
+                                                <td>Path to the SSL certificate (needed with secure mode)</td>
+                                        </tr>
+                                        <tr>
+                                                <td>--key-file</td>
+                                                <td>KEY_FILE</td>
+                                                <td></td>
+                                                <td>Path to the SSL key (needed with secure mode)</td>
+                                        </tr>
+                                        <tr>
+                                                <td>--sentry-dsn</td>
+                                                <td>SENTRY_DSN</td>
+                                                <td></td>
+                                                <td>Sentry DSN used for telemetry</td>
+                                        </tr>
+                                        <tr>
+                                                <td>--cache-lifetime</td>
+                                                <td>CACHE_LIFETIME</td>
+                                                <td>60</td>
+                                                <td>Time to keep cache for (in minutes)</td>
+                                        </tr>
+                                        <tr>
+                                                <td>--memory-lifetime</td>
+                                                <td>MEMORY_LIFETIME</td>
+                                                <td>7</td>
+                                                <td>Time to keep memory cache for (in days)</td>
+                                        </tr>
+                                        <tr>
+                                                <td>--redis-enable</td>
+                                                <td>REDIS_ENABLE</td>
+                                                <td>false</td>
+                                                <td>Enables redis for caching (memory if set to false)</td>
+                                        </tr>
+                                        <tr>
+                                                <td>--redis-address</td>
+                                                <td>REDIS_ADDR</td>
+                                                <td></td>
+                                                <td>Address to redis database</td>
+                                        </tr>
+                                        <tr>
+                                                <td>--redis-passwd</td>
+                                                <td>REDIS_PASSWD</td>
+                                                <td></td>
+                                                <td>Password for redis database</td>
+                                        </tr>
+                                        <tr>
+                                                <td>--redis-db</td>
+                                                <td>REDIS_DB</td>
+                                                <td>-1</td>
+                                                <td>Redis database to use</td>
+                                        </tr>
+                                        <tr>
+                                                <td>--proxies</td>
+                                                <td>PROXIES</td>
+                                                <td></td>
+                                                <td>Proxies to make request with. Provide multiple to cycle</td>
+                                        </tr>
+                                        <tr>
+                                                <td>--proxy-scrape-html</td>
+                                                <td>PROXY_SCRAPE_HTML</td>
+                                                <td>false</td>
+                                                <td>Sets if proxies should scrape HTML. May use up bandwidth</td>
+                                        </tr>
+                                        <tr>
+                                                <td>--insta-cookie</td>
+                                                <td>INSTA_COOKIE</td>
+                                                <td></td>
+                                                <td>User cookie for API calls with for age restricted posts</td>
+                                        </tr>
+                                        <tr>
+                                                <td>--insta-xigappid</td>
+                                                <td>INSTA_XIGAPPID</td>
+                                                <td></td>
+                                                <td>X-IG-App-ID for API calls</td>
+                                        </tr>
+                                        <tr>
+                                                <td>--insta-browser-agent</td>
+                                                <td>INSTA_BROWSER_AGENT</td>
+                                                <td>*</td>
+                                                <td>Mozilla/5.0 (X11; Linux x86_64; rv:135.0) Gecko/20100101
+                                                        Firefox/135.0</td>
+                                        </tr>
+                                        <tr>
+                                                <td>--redirect-browsers</td>
+                                                <td>REDIRECT_BROWSERS</td>
+                                                <td>true</td>
+                                                <td>Redirects browsers when URL opened in browser</td>
+                                        </tr>
+                                </tbody>
+                        </table>
+                </div>
+        </section>
+
+        <section id="examples">
+                <div class="container">
+                        <h2>📚 Examples on Running VxInstagram</h2>
+
+                        <h3>Run on the default port with no TLS</h3>
+                        <pre>./vxinsta</pre>
+
+                        <h3>Run with TLS enabled, a proxy attached, redis for cache and instagram credentials
+                                (recommended)</h3>
+                        <pre>./vxinsta \
+        --secure
+        --cert-file="/path/to/your/ssl/certificate"
+        --key=file="/path/to/your/ssl/key"
+        --proxies="http://yourproxyiphere:someport"
+        --redis-enable
+        --redis-address="127.0.0.1:6379"
+        --redis-passwd="my_very_safe_password"
+        --redis-db=0
+        --insta-cookie="your instagram cookie here"
+        --insta-xigappid="x-ig-app-id here"</pre>
+                </div>
+        </section>
+
+        <section id="roadmap">
+                <div class="container">
+                        <h2>📋 Roadmap</h2>
+                        <p>Here's what I'm working on for future releases:</p>
+
+                        <ul style="list-style-type: none; padding-left: 1rem;">
+                                <li>✅ Find a way to fix some reels not embedding</li>
+                                <li>✅ Add Open Graph embeds to videos</li>
+                                <li>⬜ Add additional info (like the amount of likes) to the Open Graph embed</li>
+                                <li>⬜ Add monitoring dashboard capabilities</li>
+                                <li>✅ Create deployment scripts (for docker and some services)</li>
+                                <li>✅ Create an action to automatically compile the binary and release it</li>
+                                <li>⬜ Fix reels with usernames at the beginning not working (/:username/reel/:postId)
+                                </li>
+                        </ul>
+                </div>
+        </section>
+
+        <section id="need-help">
+                <div class="container">
+                        <h2>Need Help?</h2>
+                        <p>If you're experiencing issues or have questions, here are some ways to get support:</p>
+                        <div class="feature-grid">
+                                <div class="feature-card">
+                                        <h3>Join Discord</h3>
+                                        <p>Get real-time support from the community and developers in our Discord server.</p>
+                                        <a href="https://discord.gg/9VyyCkMSFP" class="cta">Join Discord</a>
+                                </div>
+                                <div class="feature-card">
+                                        <h3>GitHub Issues</h3>
+                                        <p>Report bugs or request features through our GitHub issue tracker.</p>
+                                        <a href="https://github.com/Reishimanfr/vxinstagram/issues" class="cta">Open Issue</a>
+                                </div>
+                        </div>
+                </div>
+        </section>
+
+        <footer>
+                <div class="container">
+                        <p>© 2025 VxInstagram. An open-source project.</p>
+                        <div class="footer-links">
+                                <!-- <a href="">Documentation</a> -->
+                                <a href="https://github.com/Reishimanfr/vxinstagram">GitHub</a>
+                                <a href="https://discord.gg/9VyyCkMSFP">Discord</a>
+                                <!-- <a href="#">Privacy Policy</a> -->
+                        </div>
+                </div>
+        </footer>
+</body>
+
+</html>
