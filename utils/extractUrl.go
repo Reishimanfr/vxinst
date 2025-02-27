@@ -23,15 +23,14 @@ import (
 
 type ExtractedData struct {
 	Id           string `gorm:"primaryKey;unique;not null;index"`
-	PostURL      string `gorm:"not null"`
-	VideoURL     string `gorm:"not null"`
+	PostURL      string
+	VideoURL     string
 	ThumbnailURL string
-	ExpiresAt    int64 `gorm:"not null"`
-	// IsVideo      string
-	Views    string
-	Comments string
-	Likes    string
-	Username string
+	ExpiresAt    int64
+	Views        string
+	Comments     string
+	Likes        string
+	Username     string
 }
 
 var prefixes = map[string]string{

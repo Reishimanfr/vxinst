@@ -108,6 +108,32 @@ func (h *Handler) ProcessPost(c *gin.Context, postId string) {
 		slog.Debug("Found record in database")
 	}
 
+	postURL := "https://instagram.com/" + c.Request.URL.String()
+
+	if create {
+		slog.Debug("Creating new record in database")
+
+		newRecord := &utils.ExtractedData{
+			Id:        postId,
+			ExpiresAt: memoryLifetime,
+		}
+
+		if data != nil {
+			newRecord.VideoURL = data.VideoURL
+			newRecord.ThumbnailURL = data.ThumbnailURL
+			newRecord.Username = data.Username
+			newRecord.Views = data.Views
+			newRecord.Comments = data.Comments
+			newRecord.Likes = data.Likes
+			newRecord.PostURL = postURL
+		}
+
+		if err := h.Db.Model(&utils.ExtractedData{}).Create(newRecord).Error; err != nil {
+			sentry.CaptureException(err)
+			slog.Error("Failed to save record to memory database", slog.Any("err", err))
+		}
+	}
+
 	// Case 1: No data at all
 	if data == nil {
 		slog.Debug("No data found in database or from scraping")
@@ -115,6 +141,7 @@ func (h *Handler) ProcessPost(c *gin.Context, postId string) {
 			Title:       "VxInstagram - Empty Response",
 			Description: "Instagram returned an empty response meaning we can't embed the post. You'll need to see it in your browser. Sorry!",
 		})
+		return
 	}
 
 	// Case 1: No video URL found, but we have a thumbnail
@@ -128,32 +155,11 @@ func (h *Handler) ProcessPost(c *gin.Context, postId string) {
 		return
 	}
 
-	postURL := "https://instagram.com/" + c.Request.URL.String()
-
 	// Case 3: We have a video URL
 	c.HTML(http.StatusOK, "embed.html", &HtmlOpenGraphData{
 		Title:       "Post by @" + data.Username,
 		Description: "L: " + data.Likes + " C: " + data.Comments + " V: " + data.Views,
 		VideoURL:    data.VideoURL,
-		PostURL:     "https://instagram.com/" + c.Request.URL.String(),
+		PostURL:     postURL,
 	})
-
-	// Create database record if it doesn't exist
-	if create {
-		err := h.Db.Model(&utils.ExtractedData{}).Create(&utils.ExtractedData{
-			Id:           postId,
-			VideoURL:     data.VideoURL,
-			ThumbnailURL: data.ThumbnailURL,
-			Username:     data.Username,
-			Views:        data.Views,
-			Comments:     data.Comments,
-			Likes:        data.Likes,
-			PostURL:      postURL,
-			ExpiresAt:    memoryLifetime,
-		}).Error
-		if err != nil {
-			sentry.CaptureException(err)
-			slog.Error("Failed to save cdn url to memory database", slog.Any("err", err))
-		}
-	}
 }
