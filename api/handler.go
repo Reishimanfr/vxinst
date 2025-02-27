@@ -80,7 +80,9 @@ func (h *Handler) Init() {
 	h.Router.GET("/p/:id", h.ServeVideo)
 	h.Router.GET("/favicon.ico", func(ctx *gin.Context) { ctx.Status(http.StatusOK) })
 	h.Router.GET("/", func(ctx *gin.Context) {
-		http.ServeFile(ctx.Writer, ctx.Request, "main.html")
+		ctx.HTML(http.StatusOK, "main.html", gin.H{
+			"demo": "/assets/demo.png",
+		})
 	})
 	h.Router.GET("/share/:id", h.FollowShare)
 }
