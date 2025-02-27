@@ -13,8 +13,15 @@ services:
       - CERT_FILE=
       - KEY_FILE=
       - SENTRY_DSN=
-      - CACHE_LIFETIME=
-      - REDIS_ENABLE=
+      - CACHE_LIFETIME=60
+      - REDIS_ENABLE=false
+      - REDIS_ADDR=
       - REDIS_PASSWD=
-      - REDIS_DB=
+      - REDIS_DB=-1
+      - PROXIES=
+      - PROXY_SCRAPE_HTML=false
+      - INSTA_COOKIE=
+      - INSTA_XIGAPPID=
+      - INSTA_BROWSER_AGENT=Mozilla/5.0 (X11; Linux x86_64; rv:135.0) Gecko/20100101 Firefox/135.0
+      - REDIRECT_BROWSERS=true
     restart: unless-stopped
