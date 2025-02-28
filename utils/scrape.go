@@ -26,7 +26,7 @@ import (
 	"time"
 )
 
-func ScrapeFromHTML(postId string) (*ExtractedData, error) {
+func ScrapeFromHTML(postId string) (*HtmlData, error) {
 	origin := "https://instagram.com/p/" + postId + "/embed/captioned"
 
 	slog.Debug("Preparing request", slog.String("origin", origin))
@@ -60,7 +60,7 @@ func ScrapeFromHTML(postId string) (*ExtractedData, error) {
 	slog.Debug("Scanning response body for video url")
 	for scanner.Scan() {
 		line := scanner.Text()
-		if data, ok := ExtractUrl(line); ok {
+		if data, ok := ExtractHtmlData(line); ok {
 			slog.Debug("Data found!")
 			return data, nil
 		}

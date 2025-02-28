@@ -15,9 +15,10 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-package api
+package public
 
 import (
+	"bash06/vxinstagram/api/internal"
 	"bash06/vxinstagram/flags"
 	"bash06/vxinstagram/middleware"
 	"net/http"
@@ -85,4 +86,5 @@ func (h *Handler) Init() {
 		})
 	})
 	h.Router.GET("/share/:id", h.FollowShare)
+	h.Router.GET("/api/getPostDetails", func(c *gin.Context) { internal.GetPostDetails(c, h.Db) })
 }

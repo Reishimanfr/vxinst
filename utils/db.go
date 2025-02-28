@@ -28,7 +28,7 @@ func InitDb() (*gorm.DB, error) {
 		return nil, err
 	}
 
-	err = db.AutoMigrate(&ExtractedData{})
+	err = db.AutoMigrate(&HtmlData{})
 	if err != nil {
 		return nil, err
 	}

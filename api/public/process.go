@@ -15,7 +15,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-package api
+package public
 
 import (
 	"bash06/vxinstagram/flags"
@@ -23,6 +23,7 @@ import (
 	"context"
 	"log/slog"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -32,8 +33,7 @@ import (
 )
 
 var (
-	ctx            = context.Background()
-	memoryLifetime = time.Now().Add(time.Hour * time.Duration(24*(*flags.MemoryLifetime))).Unix()
+	ctx = context.Background()
 )
 
 type HtmlOpenGraphData struct {
@@ -71,11 +71,11 @@ func (h *Handler) ProcessPost(c *gin.Context, postId string) {
 		}
 	}
 
-	var data *utils.ExtractedData
+	var data *utils.HtmlData
 	var scrapeErr error
 	create := false
 
-	if err := h.Db.Model(&utils.ExtractedData{}).Where("id = ?", postId).First(&data).Error; err != nil {
+	if err := h.Db.Model(&utils.HtmlData{}).Where("shortcode = ?", postId).First(&data).Error; err != nil {
 		create = true
 
 		if err == gorm.ErrRecordNotFound {
@@ -97,10 +97,12 @@ func (h *Handler) ProcessPost(c *gin.Context, postId string) {
 				slog.Error("Failed to fetch data from API", slog.Any("err", err))
 				sentry.CaptureException(err)
 			} else if igResp != nil && len(igResp.Items) > 0 && len(igResp.Items[0].VideoVersions) > 0 && len(igResp.Items[0].ImageVersions.Candidates) > 0 {
-				data = &utils.ExtractedData{
-					VideoURL:     igResp.Items[0].VideoVersions[0].URL,
+				data = &utils.HtmlData{
+					// TODO: fix this not giving enough data
+					Video: &utils.VideoData{
+						URL: data.Video.URL,
+					},
 					ThumbnailURL: igResp.Items[0].ImageVersions.Candidates[0].URL,
-					Username:     "",
 				}
 			}
 		}
@@ -108,27 +110,20 @@ func (h *Handler) ProcessPost(c *gin.Context, postId string) {
 		slog.Debug("Found record in database")
 	}
 
-	postURL := "https://instagram.com/" + c.Request.URL.String()
-
 	if create {
 		slog.Debug("Creating new record in database")
 
-		newRecord := &utils.ExtractedData{
-			Id:        postId,
-			ExpiresAt: memoryLifetime,
+		newRecord := &utils.HtmlData{
+			Shortcode: postId,
+			ExpiresAt: time.Now().Add(time.Hour * time.Duration(24*(*flags.MemoryLifetime))).Unix(),
 		}
 
 		if data != nil {
-			newRecord.VideoURL = data.VideoURL
-			newRecord.ThumbnailURL = data.ThumbnailURL
-			newRecord.Username = data.Username
-			newRecord.Views = data.Views
-			newRecord.Comments = data.Comments
-			newRecord.Likes = data.Likes
-			newRecord.PostURL = postURL
+			newRecord = data
+			newRecord.ExpiresAt = time.Now().Add(time.Hour * time.Duration(24*(*flags.MemoryLifetime))).Unix()
 		}
 
-		if err := h.Db.Model(&utils.ExtractedData{}).Create(newRecord).Error; err != nil {
+		if err := h.Db.Model(&utils.HtmlData{}).Create(newRecord).Error; err != nil {
 			sentry.CaptureException(err)
 			slog.Error("Failed to save record to memory database", slog.Any("err", err))
 		}
@@ -145,21 +140,30 @@ func (h *Handler) ProcessPost(c *gin.Context, postId string) {
 	}
 
 	// Case 1: No video URL found, but we have a thumbnail
-	if data.VideoURL == "" && data.ThumbnailURL != "" {
+	if data.Video.URL == "" && data.ThumbnailURL != "" {
 		slog.Debug("Post didn't have a video but we found an image to show")
 
 		c.HTML(http.StatusOK, "embed.html", &HtmlOpenGraphData{
-			Title:    "@" + data.Username,
+			Title:    "@" + data.Author.Username,
 			ImageURL: data.ThumbnailURL,
 		})
 		return
 	}
 
+	var sb strings.Builder
+
+	sb.WriteString("❤️: ")
+	sb.WriteString(strconv.Itoa(data.Likes))
+	sb.WriteString(" 💬: ")
+	sb.WriteString(strconv.Itoa(data.Comments))
+	sb.WriteString(" 👁️: ")
+	sb.WriteString(strconv.Itoa(data.Views))
+
 	// Case 3: We have a video URL
 	c.HTML(http.StatusOK, "embed.html", &HtmlOpenGraphData{
-		Title:       "Post by @" + data.Username,
-		Description: "L: " + data.Likes + " C: " + data.Comments + " V: " + data.Views,
-		VideoURL:    data.VideoURL,
-		PostURL:     postURL,
+		Title:       "Post by @" + data.Author.Username,
+		Description: sb.String(),
+		VideoURL:    data.Video.URL,
+		PostURL:     data.Permalink,
 	})
 }

@@ -18,7 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 package main
 
 import (
-	"bash06/vxinstagram/api"
+	"bash06/vxinstagram/api/public"
 	"bash06/vxinstagram/flags"
 	"bash06/vxinstagram/utils"
 	"log/slog"
@@ -55,7 +55,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	h := api.NewHandler(db)
+	h := public.NewHandler(db)
 	h.Init()
 
 	// Initialize ticker for database cleanup
@@ -81,9 +81,9 @@ func cleanDb(db *gorm.DB) {
 		toDelete := []string{}
 
 		err := db.
-			Model(&utils.ExtractedData{}).
+			Model(&utils.HtmlData{}).
 			Where("expires_at < ?", time.Now().Unix()).
-			Select("id").
+			Select("shortcode").
 			Find(&toDelete).
 			Error
 
@@ -98,7 +98,7 @@ func cleanDb(db *gorm.DB) {
 		}
 
 		tx := db.Begin()
-		tx.Model(&utils.ExtractedData{}).Where("id IN ?", toDelete).Delete(nil)
+		tx.Model(&utils.HtmlData{}).Where("shortcode IN ?", toDelete).Delete(nil)
 
 		if err := tx.Commit().Error; err != nil {
 			slog.Error("Failed to commit database transaction", slog.Any("err", err.Error))
