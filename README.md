@@ -1,6 +1,8 @@
 # What is this?
 VxInstagram is an open-source, blazing fast server that scrapes the direct URL to a video from instagram's CDN to fix embedding in apps like discord.
 
+> [!TIP]
+> If you're looking for the public API stuff, go to [the wiki](https://github.com/Reishimanfr/vxinstagram/wiki)
 # How can I use it?
 Simply add `vx` to instagram URLs like so:
 ```
@@ -10,7 +12,6 @@ This will attempt to embed the instagram video:<br>
 ![image](https://github.com/user-attachments/assets/4e129b3a-efe2-4c42-b15b-25e8a9b51e2e)<br>
 > [!TIP]
 > Clicking the VxInstagram URL will redirect you to the original post
-
 # Self-hosting
 ## 🍏 Mac and Linux 🐧
 <details>
