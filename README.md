@@ -1,5 +1,5 @@
 # What is this?
-VxInstagram is an open-source, blazing fast server that scrapes the direct URL to a video from instagram's CDN to fix embedding in apps like discord.
+VxInst is an open-source, blazing fast server that scrapes the direct URL to a video from instagram's CDN to fix embedding in apps like discord.
 
 > [!TIP]
 > If you're looking for the public API stuff, go to [the wiki](https://github.com/Reishimanfr/vxinstagram/wiki)
@@ -11,7 +11,7 @@ https://vxinstagram.com/...
 This will attempt to embed the instagram video:<br>
 ![image](https://github.com/user-attachments/assets/4e129b3a-efe2-4c42-b15b-25e8a9b51e2e)<br>
 > [!TIP]
-> Clicking the VxInstagram URL will redirect you to the original post
+> Clicking the VxInst URL will redirect you to the original post
 # Self-hosting
 ## 🍏 Mac and Linux 🐧
 <details>
@@ -31,7 +31,7 @@ cd vxinstagram
 go build -ldflags "-s -w" -tags=jsoniter -o vxinsta
 ```
 
-Check out the examples on how to run VxInstagram
+Check out the examples on how to run VxInst
 
 </details>
 
@@ -43,13 +43,13 @@ There are no precompiled binaries for windows meaning you'll need to compile the
 
 ```ps
 # Clone the repository
-git clone --depth=1 https://github.com/Reishimanfr/vxinstagram
+git clone --depth=1 https://github.com/Reishimanfr/vxinst
 
 # Cd into the directory
-cd vxinstagram
+cd vxinst
 
 # Compile the code
-go build -ldflags "-s -w" -tags=jsoniter -o vxinsta.exe
+go build -ldflags "-s -w" -tags=jsoniter -o vxinst.exe
 ```
 
 </details>
@@ -98,15 +98,15 @@ The server can be configured using either command-line flags or environment vari
 
 \* = Mozilla/5.0 (X11; Linux x86_64; rv:135.0) Gecko/20100101 Firefox/135.0
 
-## 📚 Examples on running VxInstagram
+## 📚 Examples on running VxInst
 Run on the default port with no TLS
 ```ps
-./vxinsta
+./vxinst
 ```
 
 Run with TLS enabled, a proxy attached, redis for cache and instagram credentials (recommended)
 ```ps
-./vxinsta \
+./vxinst \
         --secure
         --cert-file="/path/to/your/ssl/certificate"
         --key=file="/path/to/your/ssl/key"
