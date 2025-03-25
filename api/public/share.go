@@ -1,5 +1,5 @@
 /*
-VxInstagram - Blazing fast embedder for instagram posts
+vxinst - Blazing fast embedder for instagram posts
 Copyright (C) 2025 Bash06
 
 This program is free software: you can redistribute it and/or modify
@@ -48,8 +48,8 @@ func (h *Handler) FollowShare(c *gin.Context) {
 		slog.Error("Failed to prepare request to follow redirects", slog.Any("err", err))
 		sentry.CaptureException(err)
 		c.HTML(http.StatusOK, "embed.html", &HtmlOpenGraphData{
-			Title:       "VxInstagram - Server Error",
-			Description: "VxInstagram encountered a server side error while processing your request. Request ID:`" + span.SpanID.String() + "`",
+			Title:       "vxinst - Server Error",
+			Description: "vxinst encountered a server side error while processing your request. Request ID:`" + span.SpanID.String() + "`",
 		})
 		return
 	}
@@ -59,8 +59,8 @@ func (h *Handler) FollowShare(c *gin.Context) {
 		slog.Error("Failed to follow redirects", slog.Any("err", err))
 		sentry.CaptureException(err)
 		c.HTML(http.StatusOK, "embed.html", &HtmlOpenGraphData{
-			Title:       "VxInstagram - Server Error",
-			Description: "VxInstagram encountered a server side error while processing your request. Request ID:`" + span.SpanID.String() + "`",
+			Title:       "vxinst - Server Error",
+			Description: "vxinst encountered a server side error while processing your request. Request ID:`" + span.SpanID.String() + "`",
 		})
 		return
 	}

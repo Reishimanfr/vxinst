@@ -1,5 +1,5 @@
 /*
-VxInstagram - Blazing fast embedder for instagram posts
+vxinst - Blazing fast embedder for instagram posts
 Copyright (C) 2025 Bash06
 
 This program is free software: you can redistribute it and/or modify
@@ -53,7 +53,7 @@ var (
 	InstagramXIGAppID     = pflag.String("insta-xigappid", getEnvDefault("INSTA_XIGAPPID", ""), "X-IG-App-ID to fetch content")
 	InstagramBrowserAgent = pflag.String("insta-browser-agent", getEnvDefault("INSTA_BROWSER_AGENT", "Mozilla/5.0 (X11; Linux x86_64; rv:135.0) Gecko/20100101 Firefox/135.0"), "Instagram browser agent to use")
 
-	RedirectBrowsers = pflag.Bool("redirect-browsers", getEnvDefaultBool("REDIRECT_BROWSERS", true), "Toggles if opening vxinstagram links in browser should redirect them to the post")
+	RedirectBrowsers = pflag.Bool("redirect-browsers", getEnvDefaultBool("REDIRECT_BROWSERS", true), "Toggles if opening vxinst links in browser should redirect them to the post")
 
 	ScrapingMethods = pflag.StringArray("scraping-methods", getEnvDefaultStringSlice("SCRAPING_METHODS", []string{"html"}), "Scraping methods to use. Available: html, graphql")
 

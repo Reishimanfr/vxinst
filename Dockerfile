@@ -10,7 +10,7 @@ COPY . .
 
 RUN go mod download
 
-RUN CGO_ENABLED=1 GOOS=linux go build -ldflags "-s -w" -tags=jsoniter -o vxinstagram
+RUN CGO_ENABLED=1 GOOS=linux go build -ldflags "-s -w" -tags=jsoniter -o vxinst
 
 # Runner
 FROM alpine:latest
@@ -20,9 +20,9 @@ WORKDIR /app
 RUN apk add --no-cache ca-certificates
 
 # Copy the binary and templates from the builder stage
-COPY --from=builder /app/vxinstagram .
+COPY --from=builder /app/vxinst .
 COPY --from=builder /app/templates ./templates
 
 EXPOSE 8080
 
-ENTRYPOINT ["./vxinstagram"]
+ENTRYPOINT ["./vxinst"]

@@ -26,22 +26,22 @@ jobs:
         run: go mod tidy
 
       - name: Build Binary linux/amd64
-        run: GOOS=linux GOARCH=amd64 go build -ldflags "-s -w" -tags=jsoniter -o vxinstagram-linux-amd64 .
+        run: GOOS=linux GOARCH=amd64 go build -ldflags "-s -w" -tags=jsoniter -o vxinst-linux-amd64 .
 
       - name: Build Binary darwin/amd64
-        run: GOOS=darwin GOARCH=arm64 go build -ldflags "-s -w" -tags=jsoniter -o vxinstagram-darwin-amd64 .
+        run: GOOS=darwin GOARCH=arm64 go build -ldflags "-s -w" -tags=jsoniter -o vxinst-darwin-amd64 .
 
       - name: Upload Binary Artifact linux/amd64
         uses: actions/upload-artifact@v4
         with:
-          name: vxinstagram-linux-amd64
-          path: vxinstagram-linux-amd64
+          name: vxinst-linux-amd64
+          path: vxinst-linux-amd64
 
       - name: Upload Binary Artifact darwin/amd64
         uses: actions/upload-artifact@v4
         with:
-          name: vxinstagram-darwin-amd64
-          path: vxinstagram-darwin-amd64
+          name: vxinst-darwin-amd64
+          path: vxinst-darwin-amd64
 
   release:
     name: Create GitHub Release
@@ -60,13 +60,13 @@ jobs:
       - name: Download linux/amd64
         uses: actions/download-artifact@v4
         with:
-          name: vxinstagram-linux-amd64
+          name: vxinst-linux-amd64
           path: .
 
       - name: Download darwin/amd64
         uses: actions/download-artifact@v4
         with:
-          name: vxinstagram-darwin-amd64
+          name: vxinst-darwin-amd64
           path: .
 
       - name: Create GitHub Release
@@ -74,7 +74,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.TOKEN }}
         run: |
           gh release create $TAG_NAME \
-            vxinstagram-linux-amd64 \
-            vxinstagram-darwin-amd64 \
+            vxinst-linux-amd64 \
+            vxinst-darwin-amd64 \
             --title "$TAG_NAME" \
             --notes "Automated release for $TAG_NAME"

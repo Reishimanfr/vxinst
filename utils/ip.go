@@ -1,5 +1,5 @@
 /*
-VxInstagram - Blazing fast embedder for instagram posts
+vxinst - Blazing fast embedder for instagram posts
 Copyright (C) 2025 Bash06
 
 This program is free software: you can redistribute it and/or modify

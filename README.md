@@ -3,11 +3,11 @@
 VxInst is an open-source, blazing fast server that scrapes the direct URL to a video from instagram's CDN to fix embedding in apps like discord.
 
 > [!TIP]
-> If you're looking for the public API stuff, go to [the wiki](https://github.com/Reishimanfr/vxinstagram/wiki)
+> If you're looking for the public API stuff, go to [the wiki](https://github.com/Reishimanfr/vxinst/wiki)
 # How can I use it?
 Simply add `vx` to instagram URLs like so:
 ```
-https://vxinstagram.com/...
+https://vxinst.com/...
 ```
 This will attempt to embed the instagram video:<br>
 ![image](https://github.com/user-attachments/assets/4e129b3a-efe2-4c42-b15b-25e8a9b51e2e)<br>
@@ -18,15 +18,15 @@ This will attempt to embed the instagram video:<br>
 <details>
 <summary>Click to show</summary>
 
-You can either compile the binary from source or download a precompiled binary from the [releases tab](https://github.com/Reishimanfr/vxinstagram/releases).<br>
+You can either compile the binary from source or download a precompiled binary from the [releases tab](https://github.com/Reishimanfr/vxinst/releases).<br>
 
 ### Compilation
 ```ps
 # Clone the repository
-git clone --depth=1 https://github.com/Reishimanfr/vxinstagram
+git clone --depth=1 https://github.com/Reishimanfr/vxinst
 
 # Cd into the directory
-cd vxinstagram
+cd vxinst
 
 # Compile the code
 go build -ldflags "-s -w" -tags=jsoniter -o vxinsta

@@ -1,5 +1,5 @@
 /*
-VxInstagram - Blazing fast embedder for instagram posts
+vxinst - Blazing fast embedder for instagram posts
 Copyright (C) 2025 Bash06
 
 This program is free software: you can redistribute it and/or modify
@@ -58,7 +58,7 @@ func (h *Handler) ProcessPost(c *gin.Context, postId string) {
 	if postId == "" || postId[0] != 'D' && postId[0] != 'C' {
 		slog.Debug("Invalid post id provided")
 		c.HTML(http.StatusOK, "embed.html", &HtmlOpenGraphData{
-			Title:       "VxInstagram - Not found",
+			Title:       "vxinst - Not found",
 			Description: "An invalid post ID was provided. Please make sure the URL is correct",
 		})
 		return
@@ -139,7 +139,7 @@ func (h *Handler) ProcessPost(c *gin.Context, postId string) {
 	if data == nil {
 		slog.Debug("No data found in database or from scraping")
 		c.HTML(http.StatusOK, "embed.html", &HtmlOpenGraphData{
-			Title:       "VxInstagram - Empty Response",
+			Title:       "vxinst - Empty Response",
 			Description: "Instagram returned an empty response meaning we can't embed the post. You'll need to see it in your browser. Sorry!",
 		})
 		return
