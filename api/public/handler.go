@@ -18,15 +18,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 package public
 
 import (
-	"bash06/vxinstagram/api/internal"
-	"bash06/vxinstagram/flags"
-	"bash06/vxinstagram/middleware"
+	"bitwise7/vxinst/api/internal"
+	"bitwise7/vxinst/flags"
+	"bitwise7/vxinst/middleware"
 	"net/http"
 	"time"
 
 	cache "github.com/chenyahui/gin-cache"
 	"github.com/chenyahui/gin-cache/persist"
-	sentrygin "github.com/getsentry/sentry-go/gin"
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
 	"gorm.io/gorm"
@@ -46,7 +45,9 @@ func NewHandler(db *gorm.DB) *Handler {
 		gin.ErrorLogger(),
 		middleware.RateLimiterMiddleware(middleware.NewRateLimiter(5, 10)),
 		middleware.CorsMiddleware(),
-		sentrygin.New(sentrygin.Options{}),
+		// sentrygin.New(sentrygin.Options{
+
+		// }),
 	)
 
 	r.LoadHTMLGlob("templates/*")

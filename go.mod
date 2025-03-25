@@ -1,11 +1,10 @@
-module bash06/vxinstagram
+module bitwise7/vxinst
 
 go 1.23.4
 
 require (
 	github.com/chenyahui/gin-cache v1.9.0
 	github.com/getsentry/sentry-go v0.31.1
-	github.com/getsentry/sentry-go/gin v0.31.1
 	github.com/gin-gonic/gin v1.10.0
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/json-iterator/go v1.1.12
@@ -23,7 +22,7 @@ require (
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/go-playground/validator/v10 v10.24.0 // indirect
 	github.com/goccy/go-json v0.10.5 // indirect
-	github.com/google/go-cmp v0.6.0 // indirect
+	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.9 // indirect
@@ -50,7 +49,7 @@ require (
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/rogpeppe/go-internal v1.13.1 // indirect
 	golang.org/x/sync v0.10.0 // indirect
-	golang.org/x/sys v0.29.0 // indirect
+	golang.org/x/sys v0.30.0 // indirect
 	gorm.io/driver/sqlite v1.5.7
 	gorm.io/gorm v1.25.12
 )

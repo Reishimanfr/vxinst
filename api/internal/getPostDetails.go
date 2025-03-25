@@ -18,8 +18,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 package internal
 
 import (
-	"bash06/vxinstagram/flags"
-	"bash06/vxinstagram/utils"
+	"bitwise7/vxinst/flags"
+	"bitwise7/vxinst/utils"
 	"fmt"
 	"log/slog"
 	"net/http"

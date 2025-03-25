@@ -18,9 +18,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 package main
 
 import (
-	"bash06/vxinstagram/api/public"
-	"bash06/vxinstagram/flags"
-	"bash06/vxinstagram/utils"
+	"bitwise7/vxinst/api/public"
+	"bitwise7/vxinst/flags"
+	"bitwise7/vxinst/utils"
 	"log/slog"
 	"os"
 	"time"

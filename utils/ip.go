@@ -18,7 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 package utils
 
 import (
-	"bash06/vxinstagram/flags"
+	"bitwise7/vxinst/flags"
 	"log/slog"
 	"net/http"
 	"net/url"

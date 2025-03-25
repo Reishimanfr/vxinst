@@ -55,6 +55,8 @@ var (
 
 	RedirectBrowsers = pflag.Bool("redirect-browsers", getEnvDefaultBool("REDIRECT_BROWSERS", true), "Toggles if opening vxinstagram links in browser should redirect them to the post")
 
+	ScrapingMethods = pflag.StringArray("scraping-methods", getEnvDefaultStringSlice("SCRAPING_METHODS", []string{"html"}), "Scraping methods to use. Available: html, graphql")
+
 	logLevels = []string{"debug", "info", "warn", "error"}
 )
 

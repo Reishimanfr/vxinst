@@ -1,5 +1,5 @@
 *.db
-vxinstagram
+vxinst
 docker-compose.yml
 
 *.cert

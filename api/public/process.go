@@ -18,9 +18,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 package public
 
 import (
-	"bash06/vxinstagram/flags"
-	"bash06/vxinstagram/utils"
+	"bitwise7/vxinst/flags"
+	"bitwise7/vxinst/utils"
 	"context"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"strconv"
@@ -33,7 +34,12 @@ import (
 )
 
 var (
-	ctx = context.Background()
+	ctx                  = context.Background()
+	scrapingMethodsFuncs = map[string]func(postId string) (*utils.HtmlData, error){
+		"html": utils.ScrapeFromHTML,
+		// "graphql": utils.ScrapeFromGQL,
+		// "api":     utils.FetchPost,
+	}
 )
 
 type HtmlOpenGraphData struct {
@@ -48,9 +54,6 @@ type HtmlOpenGraphData struct {
 // differences. Post ID must be specified since it's returned in different ways for each endpoint
 func (h *Handler) ProcessPost(c *gin.Context, postId string) {
 	slog.Debug("Got a request to process post", slog.String("id", postId))
-
-	span := sentry.StartSpan(c.Request.Context(), "serve.video")
-	defer span.Finish()
 
 	if postId == "" || postId[0] != 'D' && postId[0] != 'C' {
 		slog.Debug("Invalid post id provided")
@@ -71,10 +74,8 @@ func (h *Handler) ProcessPost(c *gin.Context, postId string) {
 		}
 	}
 
-	var data *utils.HtmlData
-	var scrapeErr error
 	create := false
-
+	var data *utils.HtmlData
 	if err := h.Db.Model(&utils.HtmlData{}).Where("shortcode = ?", postId).First(&data).Error; err != nil {
 		create = true
 
@@ -84,27 +85,32 @@ func (h *Handler) ProcessPost(c *gin.Context, postId string) {
 			slog.Error("Failed to read cache from database", slog.Any("err", err))
 		}
 
-		// 1: Try to scrape from HTML
-		data, scrapeErr = utils.ScrapeFromHTML(postId)
-		if scrapeErr != nil {
-			slog.Error("Failed to scrape from HTML", slog.Any("err", err))
-			sentry.CaptureException(err)
-		} else if data == nil {
-			slog.Debug("No video URL found in HTML. Trying to fetch from API")
+		for _, method := range *flags.ScrapingMethods {
+			fn, ok := scrapingMethodsFuncs[method]
 
-			igResp, err := utils.FetchPost(postId)
-			if err != nil && err.Error()[0:8] != "bad flag" {
-				slog.Error("Failed to fetch data from API", slog.Any("err", err))
-				sentry.CaptureException(err)
-			} else if igResp != nil && len(igResp.Items) > 0 && len(igResp.Items[0].VideoVersions) > 0 && len(igResp.Items[0].ImageVersions.Candidates) > 0 {
-				data = &utils.HtmlData{
-					// TODO: fix this not giving enough data
-					Video: &utils.VideoData{
-						URL: data.Video.URL,
-					},
-					ThumbnailURL: igResp.Items[0].ImageVersions.Candidates[0].URL,
-				}
+			if !ok {
+				slog.Debug("Invalid scraping method", slog.String("method", method))
+				continue
 			}
+
+			slog.Debug("Trying method", slog.String("method", method))
+
+			data, err = fn(postId)
+			if err != nil {
+				slog.Error("Method failed, trying something else if available", slog.Any("err", err))
+				continue
+			}
+
+			if data == nil {
+				slog.Error("Method didn't get any data, trying something else if available")
+				continue
+			} else {
+				slog.Debug("Found some data")
+			}
+
+			fmt.Println(data)
+
+			break
 		}
 	} else {
 		slog.Debug("Found record in database")
