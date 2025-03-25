@@ -1,3 +1,4 @@
+> This project is not associated with Instagram or Meta in any way.
 # What is this?
 VxInst is an open-source, blazing fast server that scrapes the direct URL to a video from instagram's CDN to fix embedding in apps like discord.
 
