@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta property="og:title" content="{{.Title}}" />
+        <meta property="og:description" content="{{.Description}}" />
+        <meta property="og:url" content="{{.PostURL}}" />
+        <meta property="og:type" content="video.other" />
+        <meta property="og:video" content="{{.VideoURL}}" />
+        <meta property="og:video:secure_url" content="{{.VideoURL}}" />
+        <meta property="og:video:type" content="video/mp4" />
+
+        <meta name="twitter:card" content="video.other" />
+        <meta name="twitter:title" content="{{.Title}}" />
+        <meta name="twitter:player" content="{{.VideoURL}}" />
+        <meta name="twitter:description" content="{{.Description}}" />
+
+        <meta property="theme-color" content="#2b2d31" />
+        <title>VxInst</title>
+        <style>
+                * {
+                        margin: 0;
+                        padding: 0;
+                        box-sizing: border-box;
+                }
+
+                body {
+                        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+                        background-color: #fafafa;
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        min-height: 100vh;
+                        padding: 20px;
+                }
+
+                .instagram-container {
+                        width: 350px;
+                        background-color: white;
+                        border: 1px solid #dbdbdb;
+                        border-radius: 12px;
+                        overflow: hidden;
+                        box-shadow: 0 1px 5px rgba(0, 0, 0, 0.05);
+                }
+
+                .media-container {
+                        width: 100%;
+                        aspect-ratio: 1/1;
+                        overflow: hidden;
+                        position: relative;
+                }
+
+                .post-media {
+                        width: 100%;
+                        height: 100%;
+                        object-fit: cover;
+                }
+
+                .play-overlay {
+                        position: absolute;
+                        top: 50%;
+                        left: 50%;
+                        transform: translate(-50%, -50%);
+                        background-color: rgba(0, 0, 0, 0.5);
+                        color: white;
+                        border-radius: 50%;
+                        width: 60px;
+                        height: 60px;
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        font-size: 24px;
+                        pointer-events: none;
+                        opacity: 0;
+                        transition: opacity 0.3s ease;
+                }
+
+                .media-container:hover .play-overlay {
+                        opacity: 1;
+                }
+
+                .content {
+                        padding: 15px;
+                        display: flex;
+                        flex-direction: column;
+                        gap: 15px;
+                }
+
+                .buttons {
+                        display: flex;
+                        flex-direction: column;
+                        gap: 10px;
+                }
+
+                .instagram-button {
+                        padding: 12px;
+                        border: none;
+                        border-radius: 8px;
+                        font-weight: 600;
+                        font-size: 14px;
+                        cursor: pointer;
+                        transition: opacity 0.2s ease;
+                }
+
+                .download-btn {
+                        background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+                        color: white;
+                }
+
+                .original-post-btn {
+                        background-color: #0095f6;
+                        color: white;
+                }
+
+                .instagram-button:hover {
+                        opacity: 0.8;
+                }
+
+                .logo {
+                        text-align: center;
+                        padding: 15px 0;
+                        font-weight: bold;
+                        color: #262626;
+                        border-bottom: 1px solid #dbdbdb;
+                }
+        </style>
+</head>
+
+<body>
+        <div class="instagram-container">
+                <div class="logo">{{.Title}}</div>
+                <div class="media-container">
+                        <video class="post-media" controls>
+                                <source src="{{.VideoURL}}" type="video/mp4">
+                                Your browser does not support the video tag.
+                        </video>
+                </div>
+                <div class="content">
+                        <div class="buttons">
+                                <button class="instagram-button download-btn"
+                                        onclick="window.location.href='{{.VideoURL}}'">
+                                        Download Post
+                                </button>
+                                <button class="instagram-button original-post-btn"
+                                        onclick="window.location.href='{{.PostURL}}'">
+                                        View Original Post
+                                </button>
+                        </div>
+                </div>
+        </div>
+</body>
+
+</html>

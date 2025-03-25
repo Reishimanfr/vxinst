@@ -57,21 +57,8 @@ func (h *Handler) ProcessPost(c *gin.Context, postId string) {
 
 	if postId == "" || postId[0] != 'D' && postId[0] != 'C' {
 		slog.Debug("Invalid post id provided")
-		c.HTML(http.StatusOK, "embed.html", &HtmlOpenGraphData{
-			Title:       "vxinst - Not found",
-			Description: "An invalid post ID was provided. Please make sure the URL is correct",
-		})
+		c.HTML(http.StatusOK, "not_found.html", "")
 		return
-	}
-
-	if *flags.RedirectBrowsers {
-		userAgent := strings.ToLower(c.Request.Header.Get("User-Agent"))
-
-		if !strings.Contains(userAgent, "discord") {
-			slog.Debug("Redirecting browser to instagram post")
-			c.Redirect(http.StatusPermanentRedirect, "https://instagram.com/"+c.Request.URL.String())
-			return
-		}
 	}
 
 	create := false
@@ -138,21 +125,7 @@ func (h *Handler) ProcessPost(c *gin.Context, postId string) {
 	// Case 1: No data at all
 	if data == nil {
 		slog.Debug("No data found in database or from scraping")
-		c.HTML(http.StatusOK, "embed.html", &HtmlOpenGraphData{
-			Title:       "vxinst - Empty Response",
-			Description: "Instagram returned an empty response meaning we can't embed the post. You'll need to see it in your browser. Sorry!",
-		})
-		return
-	}
-
-	// Case 1: No video URL found, but we have a thumbnail
-	if data.Video.URL == "" && data.ThumbnailURL != "" {
-		slog.Debug("Post didn't have a video but we found an image to show")
-
-		c.HTML(http.StatusOK, "embed.html", &HtmlOpenGraphData{
-			Title:    "@" + data.Author.Username,
-			ImageURL: data.ThumbnailURL,
-		})
+		c.HTML(http.StatusOK, "not_found.html", "")
 		return
 	}
 
@@ -165,11 +138,24 @@ func (h *Handler) ProcessPost(c *gin.Context, postId string) {
 	sb.WriteString(" 👁️: ")
 	sb.WriteString(strconv.Itoa(data.Views))
 
+	// Case 1: No video URL found, but we have a thumbnail
+	if data.Video.URL == "" && data.ThumbnailURL != "" {
+		slog.Debug("Post didn't have a video but we found an image to show")
+
+		c.HTML(http.StatusOK, "image.html", &HtmlOpenGraphData{
+			Title:       "Post by @" + data.Author.Username,
+			ImageURL:    data.ThumbnailURL,
+			PostURL:     data.Permalink,
+			Description: sb.String(),
+		})
+		return
+	}
+
 	// Case 3: We have a video URL
-	c.HTML(http.StatusOK, "embed.html", &HtmlOpenGraphData{
+	c.HTML(http.StatusOK, "video.html", &HtmlOpenGraphData{
 		Title:       "Post by @" + data.Author.Username,
 		Description: sb.String(),
-		VideoURL:    data.Video.URL,
 		PostURL:     data.Permalink,
+		VideoURL:    data.Video.URL,
 	})
 }

@@ -47,10 +47,8 @@ func (h *Handler) FollowShare(c *gin.Context) {
 	if err != nil {
 		slog.Error("Failed to prepare request to follow redirects", slog.Any("err", err))
 		sentry.CaptureException(err)
-		c.HTML(http.StatusOK, "embed.html", &HtmlOpenGraphData{
-			Title:       "vxinst - Server Error",
-			Description: "vxinst encountered a server side error while processing your request. Request ID:`" + span.SpanID.String() + "`",
-		})
+
+		c.HTML(http.StatusOK, "failed.html", "")
 		return
 	}
 
@@ -58,10 +56,8 @@ func (h *Handler) FollowShare(c *gin.Context) {
 	if err != nil {
 		slog.Error("Failed to follow redirects", slog.Any("err", err))
 		sentry.CaptureException(err)
-		c.HTML(http.StatusOK, "embed.html", &HtmlOpenGraphData{
-			Title:       "vxinst - Server Error",
-			Description: "vxinst encountered a server side error while processing your request. Request ID:`" + span.SpanID.String() + "`",
-		})
+
+		c.HTML(http.StatusOK, "failed.html", "")
 		return
 	}
 	res.Body.Close()

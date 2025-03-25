@@ -95,7 +95,6 @@ The server can be configured using either command-line flags or environment vari
 | --insta-cookie        | INSTA_COOKIE          |          | User cookie for API calls with for age restricted posts  |                       
 | --insta-xigappid      | INSTA_XIGAPPID        |          | X-IG-App-ID for API calls                                |
 | --insta-browser-agent | INSTA_BROWSER_AGENT   | *        | <Firefox, Linux, X11>                                    |
-| --redirect-browsers   | REDIRECT_BROWSERS     | true     | Redirects browsers when URL opened in browser            |
 
 \* = Mozilla/5.0 (X11; Linux x86_64; rv:135.0) Gecko/20100101 Firefox/135.0
 
