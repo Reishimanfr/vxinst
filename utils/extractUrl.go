@@ -19,6 +19,7 @@ package utils
 
 import (
 	"log/slog"
+	"reflect"
 	"strings"
 )
 
@@ -71,6 +72,21 @@ type HtmlData struct {
 	Video        *VideoData  `json:"video,omitempty" gorm:"serializer:json"`
 	Author       *AuthorData `json:"author" gorm:"serializer:json"`
 	ExpiresAt    int64       `json:"expires_at"`
+}
+
+func (h *HtmlData) CheckNilField(key string) (any, bool) {
+	v := reflect.ValueOf(h).Elem()
+
+	f := v.FieldByName(key)
+	if !f.IsValid() {
+		return nil, false
+	}
+
+	if f.Kind() == reflect.Ptr && f.IsNil() {
+		return nil, false
+	}
+
+	return f.Interface(), true
 }
 
 type VideoData struct {

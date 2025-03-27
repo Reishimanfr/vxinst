@@ -138,8 +138,8 @@ func (h *Handler) ProcessPost(c *gin.Context, postId string) {
 	sb.WriteString(" 👁️: ")
 	sb.WriteString(strconv.Itoa(data.Views))
 
-	// Case 1: No video URL found, but we have a thumbnail
-	if data.Video.URL == "" && data.ThumbnailURL != "" {
+	// No video but image available
+	if data.Video == nil && data.ThumbnailURL != "" {
 		slog.Debug("Post didn't have a video but we found an image to show")
 
 		c.HTML(http.StatusOK, "image.html", &HtmlOpenGraphData{
@@ -151,11 +151,19 @@ func (h *Handler) ProcessPost(c *gin.Context, postId string) {
 		return
 	}
 
-	// Case 3: We have a video URL
-	c.HTML(http.StatusOK, "video.html", &HtmlOpenGraphData{
-		Title:       "Post by @" + data.Author.Username,
-		Description: sb.String(),
-		PostURL:     data.Permalink,
-		VideoURL:    data.Video.URL,
+	// Video found
+	if data.Video != nil {
+		c.HTML(http.StatusOK, "video.html", &HtmlOpenGraphData{
+			Title:       "Post by @" + data.Author.Username,
+			Description: sb.String(),
+			PostURL:     data.Permalink,
+			VideoURL:    data.Video.URL,
+		})
+		return
+	}
+
+	// Nothing available
+	c.HTML(http.StatusOK, "failed.html", &HtmlOpenGraphData{
+		PostURL: "https://instagram.com/p/" + postId,
 	})
 }
